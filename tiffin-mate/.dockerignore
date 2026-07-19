@@ -1,0 +1,15 @@
+node_modules
+.next
+coverage
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.git
+.gitignore
+README.md
+*.mp4
+*.pdf
+*.docx
+*.vpp
+*.vpp.bak_*

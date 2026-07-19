@@ -1,0 +1,15 @@
+node_modules
+dist
+coverage
+logs
+uploads
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.git
+.gitignore
+README.md
+BOOKINGS_README.md
+*.md
+src/__tests__

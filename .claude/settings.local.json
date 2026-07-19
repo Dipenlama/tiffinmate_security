@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(npm test *)",
+      "Bash(npm ls *)",
+      "Bash(node -e \"console.log\\(1\\)\")"
+    ]
+  }
+}
