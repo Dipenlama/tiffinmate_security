@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Paths that do not require authentication
+// Routes that anyone can visit, including the landing page and menu browsing.
 const PUBLIC_PATHS = [
+  '/',
   '/login',
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/menu',
+  '/about',
+  '/browse',
+  '/browseMenu',
+  '/packages',
   '/api',
   '/_next',
   '/assets',
@@ -15,11 +21,34 @@ const PUBLIC_PATHS = [
   '/manifest.json',
 ];
 
+// Only account, ordering, and administration routes require a session.
+const PROTECTED_PATHS = [
+  '/dashboard',
+  '/bookings',
+  '/checkout',
+  '/orders',
+  '/profile',
+  '/admin',
+];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public and static assets
+  // Booking confirmation creates/uses private booking data even though the
+  // package catalogue itself is public.
+  const isProtectedConfirmation = pathname.startsWith('/packages/confirm');
+
+  // Allow the landing page, public content, auth pages, and static assets.
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    if (!isProtectedConfirmation) return NextResponse.next();
+  }
+
+  const isProtected =
+    isProtectedConfirmation ||
+    PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  // Unknown/non-sensitive routes can render normally (including Next's 404).
+  if (!isProtected) {
     return NextResponse.next();
   }
 
@@ -39,17 +68,6 @@ export function middleware(request: NextRequest) {
   // immediately 401s on its first API call, nothing more.
   const token = request.cookies.get('logged_in')?.value;
   const role = request.cookies.get('role')?.value;
-
-  // Root route: send admins to admin dashboard, others to dashboard, unauthenticated to login
-  if (pathname === '/') {
-    const url = request.nextUrl.clone();
-    if (token) {
-      url.pathname = role === 'admin' ? '/admin/dashboard' : '/dashboard';
-    } else {
-      url.pathname = '/login';
-    }
-    return NextResponse.redirect(url);
-  }
 
   // Protected routes: redirect to login when no token
   if (!token) {

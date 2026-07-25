@@ -1,13 +1,22 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { postLogout } from "../../lib/api";
-import { clearSessionMarkers } from "../../lib/session-markers";
+import { clearSessionMarkers, hasSessionMarker } from "../../lib/session-markers";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const isLoggedIn = useSyncExternalStore(
+    (onStoreChange) => {
+      window.addEventListener("auth-state-changed", onStoreChange);
+      return () => window.removeEventListener("auth-state-changed", onStoreChange);
+    },
+    hasSessionMarker,
+    () => false,
+  );
   const hideAuthActions =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
@@ -22,19 +31,19 @@ export default function Navbar() {
       // clear the cookies via Set-Cookie; the previous client-only
       // document.cookie-clearing approach silently did nothing for these.
       await postLogout();
-    } catch (e) {
+    } catch {
       // Best-effort: even if the request fails, still send the user to
       // /login rather than leaving them on a page that looks logged in.
     }
     clearSessionMarkers();
     try {
       sessionStorage.clear();
-    } catch (e) {}
+    } catch {}
     // Use hard replace to prevent back navigation to protected pages
     try {
       window.location.replace("/login");
       return;
-    } catch (e) {}
+    } catch {}
     router.replace("/login");
     router.refresh();
   };
@@ -46,12 +55,12 @@ export default function Navbar() {
           <nav aria-label="Main navigation" className="hidden md:flex gap-4 text-neutral-700">
             <Link href="/" className="hover:text-neutral-900">Home</Link>
             <Link href="/menu" className="hover:text-neutral-900">Menu</Link>
-            <Link href="/bookings" className="hover:text-neutral-900">Bookings</Link>
+            {isLoggedIn && <Link href="/bookings" className="hover:text-neutral-900">Bookings</Link>}
             <Link href="/about" className="hover:text-neutral-900">About Us</Link>
           </nav>
         </div>
 
-        {!hideAuthActions && (
+        {!hideAuthActions && isLoggedIn && (
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
@@ -66,6 +75,23 @@ export default function Navbar() {
             >
               Logout
             </button>
+          </div>
+        )}
+
+        {!hideAuthActions && !isLoggedIn && (
+          <div className="flex items-center gap-2">
+            <Link
+              href="/login"
+              className="px-4 py-2 rounded-full text-sm font-semibold text-neutral-800 hover:bg-neutral-100"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/register"
+              className="px-4 py-2 rounded-full bg-orange-600 text-sm font-semibold text-white hover:bg-orange-700"
+            >
+              Sign up
+            </Link>
           </div>
         )}
       </div>

@@ -6,6 +6,15 @@ import { useRouter } from 'next/navigation';
 import { postLogin, postMfaLoginVerify } from '../../../lib/api';
 import { setSessionMarkers } from '../../../lib/session-markers';
 
+type SessionUser = {
+  role?: string;
+  [key: string]: unknown;
+};
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -23,7 +32,7 @@ const LoginPage: React.FC = () => {
 
   const router = useRouter();
 
-  const completeLogin = (userData: any) => {
+  const completeLogin = (userData?: SessionUser | null) => {
     const role = userData?.role || 'user';
     // Non-secret marker cookies for middleware.ts routing only - see
     // lib/session-markers.ts and the comment in middleware.ts for why the
@@ -36,8 +45,19 @@ const LoginPage: React.FC = () => {
     try {
       localStorage.setItem('user', JSON.stringify(userData || {}));
     } catch {}
-    if (role === 'admin') router.push('/admin/dashboard');
-    else router.push('/dashboard');
+    const requestedPath = (() => {
+      if (typeof window === 'undefined') return null;
+      const next = new URLSearchParams(window.location.search).get('next');
+      return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+    })();
+    if (role === 'admin') {
+      router.replace(requestedPath || '/admin/dashboard');
+    } else if (requestedPath && !requestedPath.startsWith('/admin')) {
+      router.replace(requestedPath);
+    } else {
+      router.replace('/dashboard');
+    }
+    router.refresh();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,8 +76,8 @@ const LoginPage: React.FC = () => {
         return;
       }
       completeLogin(json?.data);
-    } catch (err: any) {
-      setError(err?.message || 'Login failed');
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Login failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -71,8 +91,8 @@ const LoginPage: React.FC = () => {
     try {
       const json = await postMfaLoginVerify(mfaToken, mfaCode);
       completeLogin(json?.data);
-    } catch (err: any) {
-      setError(err?.message || 'Invalid authentication code');
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Invalid authentication code'));
     } finally {
       setIsSubmitting(false);
     }

@@ -10,12 +10,14 @@ export function setSessionMarkers(role: string) {
   if (typeof document === 'undefined') return;
   document.cookie = `logged_in=1; path=/; max-age=${MARKER_MAX_AGE}; SameSite=Lax`;
   document.cookie = `role=${role}; path=/; max-age=${MARKER_MAX_AGE}; SameSite=Lax`;
+  window.dispatchEvent(new Event('auth-state-changed'));
 }
 
 export function clearSessionMarkers() {
   if (typeof document === 'undefined') return;
   document.cookie = 'logged_in=; path=/; max-age=0';
   document.cookie = 'role=; path=/; max-age=0';
+  window.dispatchEvent(new Event('auth-state-changed'));
 }
 
 // Client components use this to decide whether to bother rendering/fetching
