@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
@@ -15,6 +15,8 @@ function subscribeToAuthState(onStoreChange: () => void) {
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDetailsElement>(null);
   const isLoggedIn = useSyncExternalStore(
     subscribeToAuthState,
     hasSessionMarker,
@@ -41,7 +43,28 @@ export default function Navbar() {
     }`;
   };
 
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (!profileMenuRef.current?.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [profileOpen]);
+
   const logout = async () => {
+    setProfileOpen(false);
     try {
       // The session lives in httpOnly cookies now, which frontend JS cannot
       // read or clear itself (that's the whole point - see lib/api.ts). A
@@ -87,7 +110,12 @@ export default function Navbar() {
         </div>
 
         {!hideAuthActions && isLoggedIn && (
-          <details className="group relative">
+          <details
+            ref={profileMenuRef}
+            open={profileOpen}
+            onToggle={(event) => setProfileOpen(event.currentTarget.open)}
+            className="group relative"
+          >
             <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-neutral-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-neutral-800 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 [&::-webkit-details-marker]:hidden">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 via-orange-500 to-rose-500 text-white shadow-sm">
                 <UserRound size={19} aria-hidden="true" />
@@ -111,6 +139,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/profile"
+                    onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-emerald-50 hover:text-emerald-700"
                   >
                     <UserRound size={18} aria-hidden="true" />
