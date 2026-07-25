@@ -9,7 +9,7 @@ import { generateMfaSecret, buildMfaQrCode, verifyMfaCode, encryptMfaSecret, dec
 import { logAuditEvent } from "./audit-log.service";
 import jwt from "jsonwebtoken";
 import { IUser } from "../models/user.model";
-import { sendPasswordResetEmail } from "./mail.service";
+import { isEmailConfigured, sendPasswordResetEmail } from "./mail.service";
 
 let userRepository=new UserRepository();
 let refreshTokenRepository = new RefreshTokenRepository();
@@ -264,6 +264,9 @@ export class AuthService{
         return { success: true };
     }
     async forgotPassword(email: string){
+        if(!isEmailConfigured()){
+            throw new HttpError(503, "Email service is not configured");
+        }
         const user = await userRepository.getUserByEmail(email);
         if(!user){
             // do not reveal whether user exists
@@ -272,7 +275,11 @@ export class AuthService{
         const token = randomToken(32); // plaintext token - only ever sent to the user, never stored
         const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
         await userRepository.updateUserById(user._id.toString(), { resetPasswordToken: hashResetToken(token), resetPasswordExpires: expires } as any);
-        await sendPasswordResetEmail(user.email, token);
+        try {
+            await sendPasswordResetEmail(user.email, token);
+        } catch {
+            throw new HttpError(503, "Unable to send reset email");
+        }
         logAuditEvent({ action: 'auth.password.reset.requested', outcome: 'success', actorId: user._id.toString(), actorEmail: user.email });
         return { success: true };
     }

@@ -37,7 +37,10 @@ jest.mock("../../repositories/refresh-token.repository", () => {
 
 jest.mock("../../services/mail.service", () => {
   mockSendPasswordResetEmail = jest.fn().mockResolvedValue(true);
-  return { sendPasswordResetEmail: mockSendPasswordResetEmail };
+  return {
+    isEmailConfigured: jest.fn(() => true),
+    sendPasswordResetEmail: mockSendPasswordResetEmail,
+  };
 });
 
 describe("AuthService unit", () => {

@@ -185,7 +185,7 @@ export class AuthController{
       const parsedData = ForgotPasswordDto.safeParse(req.body);
       if(!parsedData.success) return res.status(400).json({ success:false, message: z.prettifyError(parsedData.error) });
       await authService.forgotPassword(parsedData.data.email);
-      return res.status(200).json({ success:true, message: 'If the email exists, a reset link was sent' });
+      return res.status(200).json({ success:true, message: 'A password reset link has been sent to your email.' });
     }catch(error:any){
       return res.status(error.statusCode || 500).json({ success:false, message: error.message || 'Internal Server Error' });
     }

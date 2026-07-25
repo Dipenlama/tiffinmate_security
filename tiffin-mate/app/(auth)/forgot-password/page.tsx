@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
             </button>
           </div>
         </form>
-        {status === 'sent' && <p className="mt-4 text-green-600">If that email exists, a reset link was sent.</p>}
+        {status === 'sent' && <p className="mt-4 text-green-600">A password reset link has been sent to your email.</p>}
         {status === 'error' && (
           <p className="mt-4 text-red-600">{errorMessage || "Couldn't send reset link."}</p>
         )}

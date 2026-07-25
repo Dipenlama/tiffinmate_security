@@ -10,8 +10,12 @@ import {
 
 let transporter: nodemailer.Transporter | null = null;
 
+export function isEmailConfigured(): boolean {
+  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS && MAIL_FROM);
+}
+
 function getTransporter(): nodemailer.Transporter | null {
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !MAIL_FROM) return null;
+  if (!isEmailConfigured()) return null;
 
   if (!transporter) {
     transporter = nodemailer.createTransport({
@@ -33,8 +37,7 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
   const mailer = getTransporter();
 
   if (!mailer) {
-    console.warn(`Email is not configured. Password reset link: ${resetUrl}`);
-    return false;
+    throw new Error('Email service is not configured');
   }
 
   await mailer.sendMail({
