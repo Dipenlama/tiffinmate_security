@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
     })();
 
     if (role === "admin") {
-      router.replace(requestedPath || "/admin/dashboard");
+      router.replace("/admin/dashboard");
     } else if (requestedPath && !requestedPath.startsWith("/admin")) {
       router.replace(requestedPath);
     } else {

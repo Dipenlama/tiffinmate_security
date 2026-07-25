@@ -5,19 +5,27 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { postLogout } from "../../lib/api";
-import { clearSessionMarkers, hasSessionMarker } from "../../lib/session-markers";
+import { clearSessionMarkers, getSessionRole, hasSessionMarker } from "../../lib/session-markers";
+
+function subscribeToAuthState(onStoreChange: () => void) {
+  window.addEventListener("auth-state-changed", onStoreChange);
+  return () => window.removeEventListener("auth-state-changed", onStoreChange);
+}
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const isLoggedIn = useSyncExternalStore(
-    (onStoreChange) => {
-      window.addEventListener("auth-state-changed", onStoreChange);
-      return () => window.removeEventListener("auth-state-changed", onStoreChange);
-    },
+    subscribeToAuthState,
     hasSessionMarker,
     () => false,
   );
+  const sessionRole = useSyncExternalStore(
+    subscribeToAuthState,
+    getSessionRole,
+    () => null,
+  );
+  const isAdmin = isLoggedIn && sessionRole === "admin";
   const hideAuthActions =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
@@ -52,15 +60,21 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-emerald-900/10 bg-[#fffef9]/90 shadow-[0_8px_30px_-24px_rgba(6,78,59,0.6)] backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-xl font-extrabold tracking-tight text-emerald-950">
+          <Link href={isAdmin ? "/admin/dashboard" : "/"} className="text-xl font-extrabold tracking-tight text-emerald-950">
             Tiffin <span className="bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-600 bg-clip-text text-transparent">Mate</span>
           </Link>
-          <nav aria-label="Main navigation" className="hidden md:flex gap-4 text-neutral-700">
-            <Link href="/" className="hover:text-neutral-900">Home</Link>
-            <Link href="/menu" className="hover:text-neutral-900">Menu</Link>
-            {isLoggedIn && <Link href="/bookings" className="hover:text-neutral-900">Bookings</Link>}
-            <Link href="/about" className="hover:text-neutral-900">About Us</Link>
-          </nav>
+          {isAdmin ? (
+            <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800 md:inline-flex">
+              Admin dashboard
+            </span>
+          ) : (
+            <nav aria-label="Main navigation" className="hidden md:flex gap-4 text-neutral-700">
+              <Link href="/" className="hover:text-neutral-900">Home</Link>
+              <Link href="/menu" className="hover:text-neutral-900">Menu</Link>
+              {isLoggedIn && <Link href="/bookings" className="hover:text-neutral-900">Bookings</Link>}
+              <Link href="/about" className="hover:text-neutral-900">About Us</Link>
+            </nav>
+          )}
         </div>
 
         {!hideAuthActions && isLoggedIn && (
@@ -69,7 +83,7 @@ export default function Navbar() {
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 via-orange-500 to-rose-500 text-white shadow-sm">
                 <UserRound size={19} aria-hidden="true" />
               </span>
-              <span className="hidden sm:inline">My profile</span>
+              <span className="hidden sm:inline">{isAdmin ? "Admin" : "My profile"}</span>
               <ChevronDown
                 size={16}
                 aria-hidden="true"
@@ -84,14 +98,18 @@ export default function Navbar() {
 
               <div className="my-1 border-t border-neutral-100" />
 
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                <UserRound size={18} aria-hidden="true" />
-                Profile settings
-              </Link>
-              <div className="my-1 border-t border-neutral-100" />
+              {!isAdmin && (
+                <>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-emerald-50 hover:text-emerald-700"
+                  >
+                    <UserRound size={18} aria-hidden="true" />
+                    Profile settings
+                  </Link>
+                  <div className="my-1 border-t border-neutral-100" />
+                </>
+              )}
 
               <button
                 type="button"

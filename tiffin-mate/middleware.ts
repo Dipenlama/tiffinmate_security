@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that anyone can visit, including the landing page and menu browsing.
+// Framework, API, and static paths never participate in page role routing.
+const BYPASS_PATHS = [
+  '/api',
+  '/_next',
+  '/assets',
+  '/favicon.ico',
+  '/icon.png',
+  '/manifest.json',
+];
+
+// Routes that unauthenticated visitors can access.
 const PUBLIC_PATHS = [
   '/',
   '/login',
@@ -13,12 +23,6 @@ const PUBLIC_PATHS = [
   '/browse',
   '/browseMenu',
   '/packages',
-  '/api',
-  '/_next',
-  '/assets',
-  '/favicon.ico',
-  '/icon.png',
-  '/manifest.json',
 ];
 
 // Only account, ordering, and administration routes require a session.
@@ -33,6 +37,24 @@ const PROTECTED_PATHS = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (BYPASS_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+    return NextResponse.next();
+  }
+
+  const token = request.cookies.get('logged_in')?.value;
+  const sessionVersion = request.cookies.get('session_version')?.value;
+  const role = request.cookies.get('role')?.value;
+  const hasCurrentSession = token === '1' && sessionVersion === '2';
+
+  // Admin accounts have a dedicated experience. They cannot enter customer
+  // landing, menu, booking, checkout, profile, or authentication pages.
+  if (hasCurrentSession && role === 'admin' && !pathname.startsWith('/admin')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/dashboard';
+    url.search = '';
+    return NextResponse.redirect(url);
+  }
 
   // Booking confirmation creates/uses private booking data even though the
   // package catalogue itself is public.
@@ -66,11 +88,6 @@ export function middleware(request: NextRequest) {
   // httpOnly session cookie and is authorized there regardless of what these
   // markers say - a forged `logged_in=1` cookie gets you a page shell that
   // immediately 401s on its first API call, nothing more.
-  const token = request.cookies.get('logged_in')?.value;
-  const sessionVersion = request.cookies.get('session_version')?.value;
-  const role = request.cookies.get('role')?.value;
-  const hasCurrentSession = token === '1' && sessionVersion === '2';
-
   // Protected routes: redirect to login when no token
   if (!hasCurrentSession) {
     const url = request.nextUrl.clone();
@@ -81,7 +98,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Role gating: restrict admin routes to admin role when available
-  if (pathname.startsWith('/admin') && role && role !== 'admin') {
+  if (pathname.startsWith('/admin') && role !== 'admin') {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

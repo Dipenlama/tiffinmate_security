@@ -34,3 +34,12 @@ export function hasSessionMarker(): boolean {
   const currentVersion = cookies.some((cookie) => cookie === `session_version=${SESSION_VERSION}`);
   return loggedIn && currentVersion;
 }
+
+export function getSessionRole(): string | null {
+  if (!hasSessionMarker()) return null;
+  const roleCookie = document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('role='));
+  return roleCookie ? decodeURIComponent(roleCookie.slice('role='.length)) : null;
+}
