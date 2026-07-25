@@ -85,6 +85,8 @@ export default function PackagePage() {
 
   useEffect(() => {
     if (!dayLabels.includes(selectedDay)) {
+      // Synchronize selection when the package's available days change.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedDay(dayLabels[0] || defaultDay);
     }
   }, [dayLabels.join('|')]);
@@ -92,6 +94,8 @@ export default function PackagePage() {
   useEffect(() => {
     if (isFixedPackage) {
       const first = fixedList[0];
+      // Route/package changes must reset selections that no longer exist.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedFixedPackageId((prev) => fixedList.some(p => p.id === prev) ? prev : (first?.id || ''));
       if (first?.dayOrder?.length) setSelectedDay(first.dayOrder[0]);
     }

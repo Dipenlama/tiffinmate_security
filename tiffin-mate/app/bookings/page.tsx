@@ -145,7 +145,7 @@ function BookingsPageInner() {
 
         {forbidden && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6" role="alert">
-            Forbidden: you cannot view another user's bookings.
+            Forbidden: you cannot view another user&apos;s bookings.
           </div>
         )}
 

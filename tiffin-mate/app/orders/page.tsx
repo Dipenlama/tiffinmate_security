@@ -14,7 +14,7 @@ export default function OrdersPage() {
   return (
     <main>
       <h1>My Orders</h1>
-      <p>TODO: fetch user's orders from lib/api.ts and render list with status and links to /orders/[id]</p>
+      <p>TODO: fetch user&apos;s orders from lib/api.ts and render list with status and links to /orders/[id]</p>
     </main>
   );
 }

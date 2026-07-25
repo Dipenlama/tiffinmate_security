@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#f7f6ef]">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-sm border border-neutral-200">
         <h2 className="text-2xl font-semibold text-neutral-900 mb-4">Forgot Password</h2>
-        <p className="text-sm text-neutral-600 mb-4">Enter your account email and we'll send a reset link.</p>
+        <p className="text-sm text-neutral-600 mb-4">Enter your account email and we&apos;ll send a reset link.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"

@@ -16,20 +16,21 @@ type BookingDraft = {
 
 export default function SuccessPage() {
   const router = useRouter();
-  const [booking, setBooking] = useState<BookingDraft | null>(null);
-
-  useEffect(() => {
+  const [booking] = useState<BookingDraft | null>(() => {
+    if (typeof window === "undefined") return null;
     try {
       const raw = sessionStorage.getItem("bookingDraft");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setBooking(parsed);
-      }
-    } catch (e) {}
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
     // clear draft after success
     try {
       sessionStorage.removeItem("bookingDraft");
-    } catch (e) {}
+    } catch {}
   }, []);
 
   const total = useMemo(() => {

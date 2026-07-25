@@ -211,9 +211,14 @@ describe('createBooking helper', () => {
   });
 
   test('createBooking returns failure when all endpoints fail', async () => {
-    globalAny.fetch = jest.fn(async () => {
-      return new Response(JSON.stringify({ error: 'nope' }), { status: 500, headers: { 'content-type': 'application/json' } }) as any;
-    });
+    globalAny.fetch = jest
+      .fn()
+      .mockImplementationOnce(async () => {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      })
+      .mockImplementation(async () => {
+        return new Response(JSON.stringify({ error: 'not found' }), { status: 404, headers: { 'content-type': 'application/json' } }) as any;
+      });
     const { createBooking } = await import('../lib/api');
     const res = await createBooking({});
     expect(res.ok).toBe(false);
@@ -222,10 +227,15 @@ describe('createBooking helper', () => {
 
   test('createBooking attaches idempotency key header when provided', async () => {
     let lastHeaders: any;
-    globalAny.fetch = jest.fn(async (_url: string, init: any) => {
-      lastHeaders = init.headers as Headers;
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
-    });
+    globalAny.fetch = jest
+      .fn()
+      .mockImplementationOnce(async () => {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      })
+      .mockImplementationOnce(async (_url: string, init: any) => {
+        lastHeaders = init.headers as Headers;
+        return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      });
     const { createBooking } = await import('../lib/api');
     await createBooking({}, 'key-123');
     const headerValue =
