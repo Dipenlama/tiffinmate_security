@@ -49,10 +49,12 @@ export default function Navbar() {
     router.refresh();
   };
   return (
-    <header className="bg-white border-b border-neutral-100">
+    <header className="sticky top-0 z-40 border-b border-emerald-900/10 bg-[#fffef9]/90 shadow-[0_8px_30px_-24px_rgba(6,78,59,0.6)] backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-xl font-bold text-neutral-900">Tiffin Mate</Link>
+          <Link href="/" className="text-xl font-extrabold tracking-tight text-emerald-950">
+            Tiffin <span className="bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-600 bg-clip-text text-transparent">Mate</span>
+          </Link>
           <nav aria-label="Main navigation" className="hidden md:flex gap-4 text-neutral-700">
             <Link href="/" className="hover:text-neutral-900">Home</Link>
             <Link href="/menu" className="hover:text-neutral-900">Menu</Link>
@@ -63,8 +65,8 @@ export default function Navbar() {
 
         {!hideAuthActions && isLoggedIn && (
           <details className="group relative">
-            <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-neutral-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-neutral-800 shadow-sm transition hover:border-orange-200 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 [&::-webkit-details-marker]:hidden">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-neutral-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-neutral-800 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 [&::-webkit-details-marker]:hidden">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-600 via-orange-500 to-rose-500 text-white shadow-sm">
                 <UserRound size={19} aria-hidden="true" />
               </span>
               <span className="hidden sm:inline">My profile</span>
@@ -77,14 +79,14 @@ export default function Navbar() {
 
             <div className="absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 shadow-[0_18px_50px_-18px_rgba(15,23,42,0.35)]">
               <div className="px-3 py-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">Account</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Account</p>
               </div>
 
               <div className="my-1 border-t border-neutral-100" />
 
               <Link
                 href="/profile"
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-orange-50 hover:text-orange-700"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-emerald-50 hover:text-emerald-700"
               >
                 <UserRound size={18} aria-hidden="true" />
                 Profile settings
@@ -113,7 +115,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/register"
-              className="px-4 py-2 rounded-full bg-orange-600 text-sm font-semibold text-white hover:bg-orange-700"
+              className="px-4 py-2 rounded-full bg-emerald-600 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Sign up
             </Link>

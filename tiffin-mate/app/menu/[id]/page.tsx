@@ -99,7 +99,7 @@ export default function MenuItemPage() {
   if (!item) return <main><div>Item not found</div></main>;
 
   return (
-    <main className="min-h-screen bg-neutral-50 py-8">
+    <main className="min-h-screen bg-[#f7f6ef] py-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg p-6 shadow">
         <div className="flex gap-6">
           <div className="w-1/3">
@@ -127,7 +127,7 @@ export default function MenuItemPage() {
                     <button
                       key={d}
                       onClick={() => setSelectedDays((prev) => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])}
-                      className={`px-3 py-1 rounded text-sm font-medium ${active ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'}`}>
+                      className={`px-3 py-1 rounded text-sm font-medium ${active ? 'bg-neutral-900 text-white' : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-[#f7f6ef]'}`}>
                       {d}
                     </button>
                   );
@@ -139,7 +139,7 @@ export default function MenuItemPage() {
                   <button
                     key={t}
                     onClick={() => setSelectedTime(t)}
-                    className={`px-3 py-1 rounded text-sm font-medium ${selectedTime===t ? 'bg-orange-600 text-white' : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'}`}>
+                    className={`px-3 py-1 rounded text-sm font-medium ${selectedTime===t ? 'bg-emerald-600 text-white' : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-[#f7f6ef]'}`}>
                     {t}
                   </button>
                 ))}
@@ -156,7 +156,7 @@ export default function MenuItemPage() {
 
               <div className="mt-6 flex gap-3">
                 <button onClick={addToCart} disabled={adding} className="px-4 py-2 bg-white border rounded text-neutral-800">{adding ? 'Adding…' : 'Add to cart'}</button>
-                <button onClick={bookForDay} className="px-4 py-2 bg-orange-600 text-white rounded">Book for {dayLabel}</button>
+                <button onClick={bookForDay} className="px-4 py-2 bg-emerald-600 text-white rounded">Book for {dayLabel}</button>
               </div>
             </div>
           </div>
@@ -200,12 +200,12 @@ export default function MenuItemPage() {
 
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-neutral-700">Total</div>
-              <div className="text-lg font-bold text-orange-600">₹{((Number(item.price||0)||0) * qty).toFixed(2)}</div>
+              <div className="text-lg font-bold text-rose-600">₹{((Number(item.price||0)||0) * qty).toFixed(2)}</div>
             </div>
 
             <div className="mt-6 flex gap-3 justify-end">
-              <button onClick={() => setShowBooking(false)} className="px-4 py-2 border rounded bg-white text-neutral-700 hover:bg-neutral-50">Cancel</button>
-              <button onClick={confirmBooking} className="px-4 py-2 bg-orange-600 text-white rounded">Confirm & Continue</button>
+              <button onClick={() => setShowBooking(false)} className="px-4 py-2 border rounded bg-white text-neutral-700 hover:bg-[#f7f6ef]">Cancel</button>
+              <button onClick={confirmBooking} className="px-4 py-2 bg-emerald-600 text-white rounded">Confirm & Continue</button>
             </div>
           </div>
         </div>

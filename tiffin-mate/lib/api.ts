@@ -19,17 +19,18 @@ async function handleResp(resp: Response) {
 // header (see tiffin-mate-api src/middlewares/csrf.middleware.ts). The token
 // itself is not secret - it's cached in memory for the page's lifetime to
 // avoid re-fetching it before every single write.
-let cachedCsrfToken: string | null = null;
-
 // Exported so page components that make their own raw `fetch` calls (instead
-// of going through a helper in this file) can still attach a valid CSRF
-// header without duplicating the fetch-and-cache logic.
+// of going through a helper in this file) can still attach the CSRF cookie's
+// current value without duplicating the request logic.
 export async function getCsrfToken(): Promise<string> {
-  if (cachedCsrfToken) return cachedCsrfToken;
-  const res = await fetch(`${API_BASE}/auth/csrf-token`, { credentials: 'include' });
+  const res = await fetch(`${API_BASE}/auth/csrf-token`, {
+    credentials: 'include',
+    cache: 'no-store',
+  });
   const json = await res.json().catch(() => ({} as any));
+  if (!res.ok) throw new Error(json?.message || 'Unable to initialize secure request');
   const token: string = json.csrfToken || '';
-  cachedCsrfToken = token;
+  if (!token) throw new Error('Unable to initialize secure request');
   return token;
 }
 
@@ -138,7 +139,6 @@ export async function postLogout() {
     headers: await withCsrfHeader(),
     credentials: 'include',
   });
-  cachedCsrfToken = null; // the session is gone; force a fresh token next time
   return handleResp(res);
 }
 
@@ -256,21 +256,25 @@ export async function createBooking(payload: any, idempotencyKey?: string) {
   const attempts = [
     `${API_BASE}/bookings`,
     `${API_BASE}/booking`,
-    `/api/bookings`,
-    `/api/booking`,
   ];
 
+  let lastError = '';
   for (const url of attempts) {
     try {
       const res = await postTo(url);
       if (res.status !== 404) return res;
+      lastError = `Booking endpoint not found: ${url}`;
     } catch (e) {
-      // continue to next attempt
+      lastError = e instanceof Error ? e.message : String(e);
       continue;
     }
   }
 
-  return { ok: false, status: 0, data: { error: 'All booking endpoints failed' } };
+  return {
+    ok: false,
+    status: 0,
+    data: { error: lastError || 'Unable to reach the booking service' },
+  };
 }
 
 export async function createPaymentSession(bookingId: string) {

@@ -68,7 +68,7 @@ function ResetPasswordForm() {
   return (
     <div className="min-h-[calc(100vh-72px)] bg-[radial-gradient(circle_at_top_left,_#fff1e8,_#f8fafc_48%,_#f1f5f9)] px-5 py-14 flex items-center justify-center">
       <div className="w-full max-w-md overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_-35px_rgba(15,23,42,0.45)]">
-        <div className="h-2 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-400" />
+        <div className="h-2 bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-500" />
         <div className="p-7 sm:p-9">
           {status === 'ok' ? (
             <div className="text-center">
@@ -82,14 +82,14 @@ function ResetPasswordForm() {
               <button
                 type="button"
                 onClick={() => router.replace('/login')}
-                className="mt-7 w-full rounded-lg bg-orange-600 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                className="mt-7 w-full rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
               >
                 Continue to login
               </button>
             </div>
           ) : (
             <>
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
                 <LockKeyhole size={25} aria-hidden="true" />
               </div>
               <h2 className="mt-5 text-3xl font-bold tracking-tight text-neutral-950">Reset password</h2>
@@ -118,7 +118,7 @@ function ResetPasswordForm() {
                       placeholder="Enter your new password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 pr-12 text-base text-neutral-950 placeholder:text-neutral-400 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 pr-12 text-base text-neutral-950 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                     />
                     <button
                       type="button"
@@ -145,7 +145,7 @@ function ResetPasswordForm() {
                       placeholder="Enter the password again"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 pr-12 text-base text-neutral-950 placeholder:text-neutral-400 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 pr-12 text-base text-neutral-950 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                     />
                     <button
                       type="button"
@@ -172,7 +172,7 @@ function ResetPasswordForm() {
                   <button
                     type="submit"
                     disabled={!token || status === 'loading'}
-                    className="flex-1 rounded-lg bg-orange-600 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-emerald-600 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {status === 'loading' ? 'Updating password...' : 'Reset password'}
                   </button>

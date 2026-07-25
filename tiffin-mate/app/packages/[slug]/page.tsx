@@ -221,7 +221,7 @@ export default function PackagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
+    <div className="min-h-screen bg-[#f7f6ef] text-neutral-900 font-sans">
       <header className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div>
           <div className="font-semibold text-lg">{packageLabel} Package</div>
@@ -229,7 +229,7 @@ export default function PackagePage() {
         </div>
         <div className="flex gap-3">
           <Link href="/dashboard" className="text-sm text-neutral-600">Back to Dashboard</Link>
-          <button onClick={() => router.push('/menu')} className="px-3 py-1 bg-orange-600 text-white rounded">Browse Menu</button>
+          <button onClick={() => router.push('/menu')} className="px-3 py-1 bg-emerald-600 text-white rounded">Browse Menu</button>
         </div>
       </header>
 
@@ -258,7 +258,7 @@ export default function PackagePage() {
 
                     <div className="mt-3 space-y-2 max-h-60 overflow-auto pr-1">
                       {pkg.dayOrder.map((d: string) => (
-                        <div key={d} className="border border-neutral-100 rounded-lg p-2 bg-neutral-50">
+                        <div key={d} className="border border-neutral-100 rounded-lg p-2 bg-[#f7f6ef]">
                           <div className="text-xs font-semibold text-neutral-700">{d}</div>
                           <div className="mt-1 space-y-1 text-sm text-neutral-800">
                             {((pkg.days as any)[d] || []).map((it: any) => (
@@ -284,7 +284,7 @@ export default function PackagePage() {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={saveBookingAndProceed} className="px-4 py-2 bg-orange-600 text-white rounded">Proceed with selected</button>
+              <button onClick={saveBookingAndProceed} className="px-4 py-2 bg-emerald-600 text-white rounded">Proceed with selected</button>
               <Link href="/dashboard" className="px-4 py-2 border rounded bg-white">Back</Link>
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function PackagePage() {
 
         <div className="flex gap-4 mb-6">
           {times.map(t => (
-            <button key={t} onClick={() => setSelectedTime(t)} className={`px-3 py-1 rounded ${selectedTime===t? 'bg-orange-600 text-white' : 'bg-white'}`}>
+            <button key={t} onClick={() => setSelectedTime(t)} className={`px-3 py-1 rounded ${selectedTime===t? 'bg-emerald-600 text-white' : 'bg-white'}`}>
               {t}
             </button>
           ))}
@@ -344,7 +344,7 @@ export default function PackagePage() {
                     </div>
 
                     <div>
-                      <button onClick={() => addToSelection(it.id)} className={`px-4 py-2 rounded-full text-white ${selectedItems[it.id] ? 'bg-neutral-700' : 'bg-orange-600 hover:bg-orange-700'}`}>{selectedItems[it.id] ? 'Selected' : 'Add'}</button>
+                      <button onClick={() => addToSelection(it.id)} className={`px-4 py-2 rounded-full text-white ${selectedItems[it.id] ? 'bg-neutral-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>{selectedItems[it.id] ? 'Selected' : 'Add'}</button>
                     </div>
                   </div>
                 </div>
@@ -359,7 +359,7 @@ export default function PackagePage() {
               <div className="text-sm text-neutral-600">{Object.keys(selectedItems).filter(k => selectedItems[k]).length} selected</div>
               <div className="flex gap-3">
                 <button className="px-4 py-2 bg-white border rounded" onClick={() => { try { sessionStorage.setItem('bookingDraft', JSON.stringify({ savedAt: new Date().toISOString(), package: pkgKey })); alert('Saved draft'); } catch(e){}}}>Save for later</button>
-                <button className="px-4 py-2 bg-orange-600 text-white rounded" onClick={saveBookingAndProceed}>Proceed</button>
+                <button className="px-4 py-2 bg-emerald-600 text-white rounded" onClick={saveBookingAndProceed}>Proceed</button>
               </div>
             </div>
           </div>

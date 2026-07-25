@@ -91,9 +91,9 @@ export default function MenuPage() {
   const visible = items; // items already filtered by API params
 
   return (
-    <main className="min-h-screen bg-orange-50">
+    <main className="min-h-screen bg-emerald-50">
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <header className="relative overflow-hidden rounded-2xl bg-orange-500 text-white px-6 py-8 shadow-lg">
+        <header className="relative overflow-hidden rounded-2xl bg-emerald-500 text-white px-6 py-8 shadow-lg">
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_20%_20%,white_0,transparent_30%),radial-gradient(circle_at_80%_0%,white_0,transparent_25%)]" aria-hidden />
           <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -135,7 +135,7 @@ export default function MenuPage() {
                 <button
                   key={c}
                   onClick={() => { setCategory(c); setPage(1); }}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold transition ${category === c ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-700 bg-white border border-neutral-200 hover:bg-neutral-50'}`}>
+                  className={`px-3 py-1 rounded-full text-sm font-semibold transition ${category === c ? 'bg-neutral-900 text-white shadow-md' : 'text-neutral-700 bg-white border border-neutral-200 hover:bg-[#f7f6ef]'}`}>
                   {c}
                 </button>
               ))}
@@ -168,7 +168,7 @@ export default function MenuPage() {
                         <p className="text-sm text-neutral-600 line-clamp-2">{it.description || 'Freshly prepared meal crafted by our chefs.'}</p>
                       </div>
                       <div className="text-right ml-2 flex flex-col items-end">
-                        <div className="text-xl font-bold text-orange-600">₹{(Number(it.price||0)).toFixed(2)}</div>
+                        <div className="text-xl font-bold text-rose-600">₹{(Number(it.price||0)).toFixed(2)}</div>
                         <div className={`text-[11px] font-semibold mt-1 px-2 py-1 rounded-full border ${it.available === false ? 'text-red-600 bg-red-50 border-red-100' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
                           {it.available === false ? 'Unavailable' : 'In stock'}
                         </div>
@@ -177,7 +177,7 @@ export default function MenuPage() {
 
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex gap-2">
-                        <Link href={`/menu/${it.id}`} className="px-3 py-2 border border-neutral-200 rounded-md text-sm text-neutral-800 hover:bg-neutral-50">View</Link>
+                        <Link href={`/menu/${it.id}`} className="px-3 py-2 border border-neutral-200 rounded-md text-sm text-neutral-800 hover:bg-[#f7f6ef]">View</Link>
                       </div>
                       <div className="text-[11px] text-neutral-500">ID: {it.id}</div>
                     </div>

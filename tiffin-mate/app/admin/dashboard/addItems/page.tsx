@@ -115,7 +115,7 @@ export default function AdminPage() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={it.image} alt={it.name} className={styles.thumb} />
                 ) : (
-                  <div style={{ width: 72, height: 56, borderRadius: 6, background: "#fff3ef", display: "flex", alignItems: "center", justifyContent: "center", color: "#e64a19", fontWeight: 700 }}>T</div>
+                  <div style={{ width: 72, height: 56, borderRadius: 6, background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", color: "#087f5b", fontWeight: 700 }}>T</div>
                 )}
                 <div className={styles.cardInfo}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

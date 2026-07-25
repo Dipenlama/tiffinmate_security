@@ -29,7 +29,7 @@ export default function ConfirmPage() {
           <div className="text-lg font-semibold">No booking found</div>
           <div className="mt-4 text-sm text-neutral-600">Please select items first.</div>
           <div className="mt-6">
-            <button onClick={() => router.push('/dashboard')} className="px-4 py-2 bg-orange-600 text-white rounded">Go to dashboard</button>
+            <button onClick={() => router.push('/dashboard')} className="px-4 py-2 bg-emerald-600 text-white rounded">Go to dashboard</button>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function ConfirmPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
+    <div className="min-h-screen bg-[#f7f6ef] text-neutral-900 font-sans">
       <header className="max-w-7xl mx-auto px-6 py-6">
         <div className="font-semibold text-lg">Confirm Booking</div>
         <div className="text-sm text-neutral-600">Review your selection and proceed to payment</div>
@@ -198,7 +198,7 @@ export default function ConfirmPage() {
               }
 
               return (
-                <div key={it.id} className="flex items-center justify-between bg-neutral-50 rounded p-3">
+                <div key={it.id} className="flex items-center justify-between bg-[#f7f6ef] rounded p-3">
                   <div>
                     <div className="font-medium">{displayName}</div>
                     <div className="text-xs text-neutral-500">Qty: {it.qty} • Price: ₹{it.price}</div>
@@ -211,12 +211,12 @@ export default function ConfirmPage() {
 
           <div className="mt-6 flex items-center justify-between">
             <div className="text-sm text-neutral-600">Total</div>
-            <div className="text-xl font-bold text-orange-600">₹{total}</div>
+            <div className="text-xl font-bold text-rose-600">₹{total}</div>
           </div>
 
           <div className="mt-6 flex gap-3">
             <button onClick={cancel} disabled={processing} className="px-4 py-2 bg-white border rounded">Cancel</button>
-            <button onClick={makePayment} disabled={processing} className="px-4 py-2 bg-orange-600 text-white rounded">{processing ? 'Processing…' : 'Make Payment'}</button>
+            <button onClick={makePayment} disabled={processing} className="px-4 py-2 bg-emerald-600 text-white rounded">{processing ? 'Processing…' : 'Make Payment'}</button>
           </div>
         </div>
       </main>

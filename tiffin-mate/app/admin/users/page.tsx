@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
         <div className="mt-4 flex gap-2">
-          <button onClick={handleCreate} className="bg-orange-600 text-white px-4 py-2 rounded text-sm">Create</button>
+          <button onClick={handleCreate} className="bg-emerald-600 text-white px-4 py-2 rounded text-sm">Create</button>
           <button onClick={() => setUserForm({ username: '', email: '', password: '', confirmPassword: '', role: 'user' })} className="px-4 py-2 rounded border text-sm">Clear</button>
         </div>
       </div>

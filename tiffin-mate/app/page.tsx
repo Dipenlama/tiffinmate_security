@@ -31,7 +31,7 @@ const Deals = () => (
       <div className="flex gap-3 text-sm text-neutral-600">
         <button className="px-3 py-1 rounded-full border">Vegan</button>
         <button className="px-3 py-1 rounded-full border">Sushi</button>
-        <button className="px-3 py-1 rounded-full bg-orange-600 text-white">Pizza & Fast food</button>
+        <button className="px-3 py-1 rounded-full bg-emerald-600 text-white">Pizza & Fast food</button>
         <button className="px-3 py-1 rounded-full border">others</button>
       </div>
     </div>
@@ -75,18 +75,18 @@ const Hero: React.FC = () => {
       <div className="bg-white rounded-2xl overflow-hidden shadow-lg grid md:grid-cols-2 gap-6 items-center p-6">
         <div className="p-6">
           <p className="text-sm text-neutral-500 mb-2">Order food on a tiffin basis.</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-neutral-900 leading-tight">Feast Your Senses, <span className="text-orange-600">With Tiffin Mate</span></h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-neutral-900 leading-tight">Feast Your Senses, <span className="text-emerald-600">With Tiffin Mate</span></h1>
           <p className="mt-4 text-sm text-neutral-600">Choose from our delicious home-style meals</p>
 
           <div className="mt-6 flex flex-wrap gap-3 items-center">
             <input className="flex-1 min-w-[200px] border border-neutral-200 rounded-full px-4 py-3" placeholder="Search menu" />
-            <button className="px-6 py-3 rounded-full bg-orange-600 text-white font-medium" onClick={() => router.push('/menu')}>Search</button>
+            <button className="px-6 py-3 rounded-full bg-emerald-600 text-white font-medium" onClick={() => router.push('/menu')}>Search</button>
             <button className="px-6 py-3 rounded-full border border-neutral-200 text-neutral-900 font-semibold ml-2" onClick={() => router.push('/login')}>Get Started</button>
           </div>
         </div>
 
         <div className="relative flex items-center justify-center">
-          <div className="absolute right-0 top-0 -translate-y-8 w-72 h-72 md:w-96 md:h-96 rounded-l-full bg-orange-600/95"></div>
+          <div className="absolute right-0 top-0 -translate-y-8 w-72 h-72 md:w-96 md:h-96 rounded-l-full bg-gradient-to-br from-emerald-600 via-orange-500 to-rose-500"></div>
           <div className="relative z-10 w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden shadow-xl">
             <img src={RectangleImg.src} alt="hero" className="w-full h-full object-cover" />
           </div>
@@ -98,7 +98,7 @@ const Hero: React.FC = () => {
 
 const HomePage: React.FC = () => {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 font-sans">
+    <div className="min-h-screen bg-[#f7f6ef] text-neutral-900 font-sans">
       <main>
         <Hero />
         <Deals />

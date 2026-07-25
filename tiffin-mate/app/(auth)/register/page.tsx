@@ -1,33 +1,44 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, User, Utensils } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { postRegister } from '../../../lib/api';
-import { formatPasswordError, validatePassword } from '../../../lib/password-validation';
+import React, { useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  Eye,
+  EyeOff,
+  Leaf,
+  Lock,
+  Mail,
+  User,
+  Utensils,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { postRegister } from "../../../lib/api";
+import { formatPasswordError, validatePassword } from "../../../lib/password-validation";
 
 const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (isSubmitting) return;
     if (!fullName || !email || !password || !confirmPassword) {
-      setError('Please fill all fields.');
+      setError("Please fill all fields.");
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
     const passwordError = validatePassword(password);
@@ -35,18 +46,15 @@ const SignupPage: React.FC = () => {
       setError(passwordError);
       return;
     }
+
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
-
     try {
       await postRegister(fullName, email, password, confirmPassword);
-      setSuccess('Account created successfully. You can now log in.');
-      // Give the user a moment to see the success, then redirect
-      setTimeout(() => {
-        router.push('/login');
-      }, 800);
-    } catch (err: any) {
+      setSuccess("Account created successfully. You can now log in.");
+      setTimeout(() => router.push("/login"), 800);
+    } catch (err: unknown) {
       setError(formatPasswordError(err));
     } finally {
       setIsSubmitting(false);
@@ -54,146 +62,206 @@ const SignupPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-white font-sans">
-      {/* Left Side: Branding (match login) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-orange-500 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white via-transparent to-transparent opacity-20"></div>
-        </div>
+    <div className="relative min-h-[calc(100vh-73px)] overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-emerald-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-4 h-80 w-80 rounded-full bg-orange-200/40 blur-3xl" />
 
-        <div className="relative z-10 w-full flex flex-col justify-center items-center text-white p-12 text-center">
-          <Utensils size={80} className="mb-6" />
-          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">TiffinMate</h1>
-          <p className="text-xl font-light max-w-md">
-            The taste of home, delivered straight to your doorstep. Join our community of food lovers today.
-          </p>
-        </div>
-      </div>
+      <div className="relative mx-auto grid min-h-[760px] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[#fffef9] shadow-[0_30px_90px_-45px_rgba(6,78,59,0.55)] lg:grid-cols-[1.05fr_0.95fr]">
+        <aside className="relative hidden overflow-hidden bg-emerald-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute -right-32 -top-28 h-96 w-96 rounded-full border-[70px] border-orange-500/20" />
+          <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-rose-500/15 blur-2xl" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(249,115,22,0.08)_58%,rgba(225,29,72,0.08)_100%)]" />
 
-      {/* Right Side: Sign Up Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-24 lg:px-32 py-12">
-        <div className="max-w-md w-full mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Create New Account</h2>
-          <p className="text-gray-500 mb-8">Join TiffinMate to get started.</p>
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Full Name Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  minLength={9}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                  placeholder="Full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  minLength={9}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} className="text-gray-400" /> : <Eye size={18} className="text-gray-400" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  required
-                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} className="text-gray-400" /> : <Eye size={18} className="text-gray-400" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Sign Up Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-orange-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shadow-lg shadow-orange-200"
-            >
-              {isSubmitting ? 'Creating account...' : 'Sign Up'}
-            </button>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {success && !error && <p className="text-sm text-emerald-600">{success}</p>}
-          </form>
-
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-orange-500 to-rose-500 shadow-lg shadow-emerald-950/30">
+                <Utensils size={24} />
+              </span>
+              <span className="text-2xl font-extrabold tracking-tight">Tiffin Mate</span>
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center">
-            <p className="text-gray-600">
-              <Link href="/login" className="font-semibold text-orange-600 hover:underline">
-                Go to login
-              </Link>
+          <div className="relative z-10 max-w-lg">
+            <span className="inline-flex rounded-full border border-orange-300/25 bg-orange-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-200">
+              Your daily meal, simplified
+            </span>
+            <h1 className="mt-7 text-5xl font-extrabold leading-[1.08] tracking-tight">
+              Join for meals that
+              <span className="block bg-gradient-to-r from-emerald-300 via-orange-300 to-rose-300 bg-clip-text text-transparent">
+                feel like home.
+              </span>
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-emerald-100/75">
+              Create your account to discover daily menus, choose flexible packages, and keep every delivery organized.
             </p>
+
+            <div className="mt-9 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm">
+                <Leaf size={20} className="text-emerald-300" />
+                <p className="mt-3 text-sm font-semibold">Wholesome choices</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-100/60">Fresh menus for everyday eating.</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm">
+                <Clock3 size={20} className="text-orange-300" />
+                <p className="mt-3 text-sm font-semibold">Flexible schedule</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-100/60">Book meals around your routine.</p>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <p className="relative z-10 text-xs tracking-wide text-emerald-100/45">
+            Fresh choices. Easy bookings. Delicious routines.
+          </p>
+        </aside>
+
+        <main className="flex items-center px-6 py-10 sm:px-12 lg:px-16">
+          <div className="mx-auto w-full max-w-md">
+            <div className="mb-8 flex items-center gap-3 lg:hidden">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 via-orange-500 to-rose-500 text-white shadow-md">
+                <Utensils size={22} />
+              </span>
+              <span className="text-2xl font-extrabold tracking-tight text-emerald-950">Tiffin Mate</span>
+            </div>
+
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-orange-600">Create your account</p>
+            <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-emerald-950">Start your meal journey</h2>
+            <p className="mt-3 text-sm leading-6 text-neutral-600">
+              Set up your account and choose meals that fit your day.
+            </p>
+
+            <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="signup-name" className="mb-2 block text-sm font-semibold text-neutral-800">
+                  Full name
+                </label>
+                <div className="relative">
+                  <User size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    id="signup-name"
+                    type="text"
+                    required
+                    autoComplete="name"
+                    className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-4 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    placeholder="Your full name"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="signup-email" className="mb-2 block text-sm font-semibold text-neutral-800">
+                  Email address
+                </label>
+                <div className="relative">
+                  <Mail size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    id="signup-email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-4 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="signup-password" className="mb-2 block text-sm font-semibold text-neutral-800">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      id="signup-password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      minLength={9}
+                      autoComplete="new-password"
+                      className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-11 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                      placeholder="Create password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-neutral-400 transition hover:text-neutral-700"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="signup-confirm" className="mb-2 block text-sm font-semibold text-neutral-800">
+                    Confirm
+                  </label>
+                  <div className="relative">
+                    <Lock size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                    <input
+                      id="signup-confirm"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      minLength={9}
+                      autoComplete="new-password"
+                      className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-11 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                      placeholder="Repeat password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-neutral-400 transition hover:text-neutral-700"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="rounded-xl bg-gradient-to-r from-emerald-50 via-orange-50 to-rose-50 px-4 py-3 text-xs leading-5 text-neutral-700">
+                Use at least 9 characters with one number and one special character.
+              </p>
+
+              {error && (
+                <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </p>
+              )}
+              {success && !error && (
+                <p className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  <CheckCircle2 size={18} />
+                  {success}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-500 px-4 py-3.5 font-bold text-white shadow-lg shadow-orange-200/60 transition hover:-translate-y-0.5 hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                {isSubmitting ? "Creating account..." : "Create account"}
+                {!isSubmitting && <ArrowRight size={18} />}
+              </button>
+            </form>
+
+            <div className="mt-7 border-t border-neutral-200 pt-6 text-center">
+              <p className="text-sm text-neutral-600">
+                Already have an account?
+                <Link href="/login" className="ml-2 font-bold text-emerald-700 transition hover:text-emerald-900 hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

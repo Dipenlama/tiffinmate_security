@@ -219,7 +219,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-[#f7f6ef]">
       <main className="max-w-5xl mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -255,7 +255,7 @@ export default function ProfilePage() {
                 <input
                   value={user?.email || ''}
                   readOnly
-                  className="w-full border border-neutral-200 bg-neutral-50 rounded px-3 py-2 text-neutral-800"
+                  className="w-full border border-neutral-200 bg-[#f7f6ef] rounded px-3 py-2 text-neutral-800"
                 />
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function ProfilePage() {
               <button
                 onClick={onSaveProfile}
                 disabled={saving}
-                className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60"
+                className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
               >
                 {saving ? 'Saving…' : 'Save changes'}
               </button>
@@ -321,7 +321,7 @@ export default function ProfilePage() {
               <button
                 onClick={onChangePassword}
                 disabled={pwSaving}
-                className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60"
+                className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
               >
                 {pwSaving ? 'Saving…' : 'Update password'}
               </button>
@@ -354,7 +354,7 @@ export default function ProfilePage() {
                 <button
                   onClick={onStartMfaSetup}
                   disabled={mfaBusy}
-                  className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60"
+                  className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
                 >
                   {mfaBusy ? 'Starting…' : 'Enable two-factor authentication'}
                 </button>
@@ -386,7 +386,7 @@ export default function ProfilePage() {
                     <button
                       onClick={onConfirmMfaSetup}
                       disabled={mfaBusy || mfaCode.length !== 6}
-                      className="px-4 py-2 rounded bg-orange-600 text-white text-sm disabled:opacity-60"
+                      className="px-4 py-2 rounded bg-emerald-600 text-white text-sm disabled:opacity-60"
                     >
                       {mfaBusy ? 'Verifying…' : 'Confirm & enable'}
                     </button>

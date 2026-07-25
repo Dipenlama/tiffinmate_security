@@ -41,10 +41,10 @@ export default function SuccessPage() {
   }, [booking]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900 flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-[#f7f6ef] text-neutral-900 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg border border-neutral-200 p-8">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 text-orange-700 font-bold">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 font-bold">
             ✓
           </div>
           <h2 className="text-2xl font-bold mt-4">Booking Confirmed</h2>
@@ -74,7 +74,7 @@ export default function SuccessPage() {
 
             {booking.items?.length ? (
               <div className="rounded-lg border border-neutral-200">
-                <div className="px-4 py-3 text-sm font-semibold bg-neutral-50">Items</div>
+                <div className="px-4 py-3 text-sm font-semibold bg-[#f7f6ef]">Items</div>
                 <ul className="divide-y divide-neutral-200">
                   {booking.items.map((it, idx) => (
                     <li key={`${it.name || it.title || "item"}-${idx}`} className="px-4 py-3 flex items-center justify-between text-sm">
@@ -103,7 +103,7 @@ export default function SuccessPage() {
           <button onClick={() => router.push("/bookings")} className="px-4 py-2 rounded bg-neutral-900 text-white">
             View bookings
           </button>
-          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 rounded bg-orange-600 text-white">
+          <button onClick={() => router.push("/dashboard")} className="px-4 py-2 rounded bg-emerald-600 text-white">
             Back to dashboard
           </button>
         </div>

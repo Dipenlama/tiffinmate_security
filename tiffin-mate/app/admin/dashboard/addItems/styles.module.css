@@ -11,7 +11,7 @@
   background: #fff;
 }
 .logo{
-  color:#e64a19; /* deep orange */
+  color:#087f5b;
   font-weight:800;
   font-size:24px;
   margin-bottom:20px;
@@ -39,7 +39,7 @@
   border-bottom:1px solid rgba(0,0,0,0.04);
 }
 .avatar{
-  width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,#ff7043,#e64a19);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+  width:40px;height:40px;border-radius:999px;background:linear-gradient(135deg,#10b981,#f97316 62%,#e11d48);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
 }
 .formBox{
   max-width:880px;
@@ -53,7 +53,7 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  color:#e64a19;
+  color:#087f5b;
   margin-bottom:18px;
   background: #fff;
   cursor:pointer;
@@ -72,12 +72,12 @@
 }
 .textarea{min-height:120px}
 .row{display:flex;gap:20px;align-items:flex-start}
-.addBtn{background:#e64a19;color:#fff;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:700}
+.addBtn{background:linear-gradient(110deg,#087f5b,#f97316 72%,#c43d3d);color:#fff;padding:12px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:700}
 .muted{color:#8a8a8a}
 .cardList{margin-top:28px}
 .cardItem{display:flex;gap:12px;padding:12px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:#fff;margin-bottom:10px}
 .thumb{width:72px;height:56px;border-radius:6px;object-fit:cover}
 .cardInfo{flex:1}
-.categoryTag{display:inline-block;padding:6px 8px;background:rgba(230,74,25,0.06);color:#e64a19;border-radius:6px;font-weight:600}
+.categoryTag{display:inline-block;padding:6px 8px;background:rgba(8,127,91,0.08);color:#087f5b;border-radius:6px;font-weight:600}
 .badge{display:inline-block;padding:6px 8px;background:rgba(0,0,0,0.05);color:#2f2f2f;border-radius:6px;font-weight:600;font-size:12px}
 

@@ -41,7 +41,7 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-50 p-8">
+    <main className="min-h-screen bg-[#f7f6ef] p-8">
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold">Admin — Orders</h1>

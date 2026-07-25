@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-orange-50">
+    <div className="min-h-screen bg-emerald-50">
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-12">
       <header className="space-y-3 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-700 text-xs font-semibold border border-orange-100">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
           About TiffinMate
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-neutral-900">Home-style meals, crafted with care</h1>
@@ -33,7 +33,7 @@ export default function AboutPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 md:grid-cols-[1.1fr,0.9fr] items-center rounded-2xl border border-neutral-200 bg-gradient-to-r from-orange-100 via-white to-white p-8 shadow-sm">
+      <section className="grid gap-6 md:grid-cols-[1.1fr,0.9fr] items-center rounded-2xl border border-neutral-200 bg-gradient-to-r from-emerald-100 via-orange-50 to-rose-50 p-8 shadow-sm">
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-neutral-900">Why people choose us</h2>
           <ul className="space-y-3 text-sm text-neutral-700 list-disc list-inside">
@@ -43,29 +43,29 @@ export default function AboutPage() {
             <li>Simple booking and easy cancellations when plans change.</li>
           </ul>
           <div className="flex gap-3 pt-2">
-            <Link href="/menu" className="px-4 py-2 rounded-full bg-orange-600 text-white text-sm font-semibold hover:-translate-y-0.5 transition">See today&apos;s menu</Link>
-            <Link href="/bookings" className="px-4 py-2 rounded-full border border-neutral-300 text-sm text-neutral-800 bg-white hover:border-orange-200 transition">View bookings</Link>
+            <Link href="/menu" className="px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:-translate-y-0.5 transition">See today&apos;s menu</Link>
+            <Link href="/bookings" className="px-4 py-2 rounded-full border border-neutral-300 text-sm text-neutral-800 bg-white hover:border-emerald-200 transition">View bookings</Link>
           </div>
         </div>
         <div className="rounded-xl bg-white border border-neutral-200 p-5 shadow-sm">
           <h3 className="text-base font-semibold text-neutral-900">A day with TiffinMate</h3>
           <dl className="mt-4 space-y-3 text-sm text-neutral-700">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-orange-600" aria-hidden />
+              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-emerald-600" aria-hidden />
               <div>
                 <dt className="font-semibold text-neutral-900">Morning prep</dt>
                 <dd className="text-neutral-600">Kitchens receive orders and cook fresh portions for each slot.</dd>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-orange-600" aria-hidden />
+              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-emerald-600" aria-hidden />
               <div>
                 <dt className="font-semibold text-neutral-900">On-time dispatch</dt>
                 <dd className="text-neutral-600">Orders leave in insulated carriers with clear tracking updates.</dd>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-orange-600" aria-hidden />
+              <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-emerald-600" aria-hidden />
               <div>
                 <dt className="font-semibold text-neutral-900">Easy follow-up</dt>
                 <dd className="text-neutral-600">If you need to adjust a delivery, support is just a message away.</dd>

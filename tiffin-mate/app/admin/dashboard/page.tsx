@@ -370,10 +370,10 @@ export default function AdminDashboardPage() {
         return { days, points, max };
     }, [bookings]);
 
-    const orangeCard = "bg-gradient-to-r from-orange-500 to-amber-500 text-white";
+    const orangeCard = "bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-500 text-white";
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-white text-neutral-900">
+        <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-orange-50 to-rose-50 text-neutral-900">
             <main className="max-w-7xl mx-auto px-6 py-8">
                 <header className="mb-8 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
@@ -382,7 +382,7 @@ export default function AdminDashboardPage() {
                             <h1 className="text-3xl font-bold">Dashboard</h1>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-neutral-600 bg-white border border-neutral-200 px-3 py-2 rounded-full shadow-sm">
-                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-700 font-semibold">A</span>
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-semibold">A</span>
                             <span>Signed in as Admin</span>
                         </div>
                     </div>
@@ -391,7 +391,7 @@ export default function AdminDashboardPage() {
                             <button
                                 key={t.key}
                                 onClick={() => setTab(t.key as TabKey)}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tab === t.key ? orangeCard : "bg-white border border-neutral-200 text-neutral-800 hover:bg-neutral-50"}`}
+                                className={`px-4 py-2 rounded-full text-sm font-semibold transition ${tab === t.key ? orangeCard : "bg-white border border-neutral-200 text-neutral-800 hover:bg-[#f7f6ef]"}`}
                             >
                                 {t.label}
                             </button>
@@ -406,11 +406,11 @@ export default function AdminDashboardPage() {
                                 <div key={s.label} className="rounded-xl p-5 shadow-sm bg-white border border-neutral-200">
                                     <div className="flex items-center justify-between">
                                         <div className="text-sm text-neutral-500">{s.label}</div>
-                                        <span className="px-2 py-1 text-xs rounded-full bg-orange-50 text-orange-700">Live</span>
+                                        <span className="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Live</span>
                                     </div>
                                     <div className="text-3xl font-bold mt-2 text-neutral-900">{s.value}</div>
-                                    <div className="mt-2 h-1 rounded-full bg-orange-100">
-                                        <div className="h-full rounded-full bg-orange-500" style={{ width: `${Math.min(100, (Number(s.value) || 0) * 5)}%` }}></div>
+                                    <div className="mt-2 h-1 rounded-full bg-emerald-100">
+                                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.min(100, (Number(s.value) || 0) * 5)}%` }}></div>
                                     </div>
                                 </div>
                             ))}
@@ -429,7 +429,7 @@ export default function AdminDashboardPage() {
                                     {[{
                                         label: "Pending",
                                         value: bookingInsights.counts.pending,
-                                        tone: "bg-amber-50 text-amber-700",
+                                        tone: "bg-orange-50 text-orange-700",
                                     }, {
                                         label: "Dispatched",
                                         value: bookingInsights.counts.dispatched,
@@ -441,7 +441,7 @@ export default function AdminDashboardPage() {
                                     }, {
                                         label: "Active Bookings",
                                         value: bookingInsights.active,
-                                        tone: "bg-orange-50 text-orange-700",
+                                        tone: "bg-emerald-50 text-emerald-700",
                                     }, {
                                         label: "Cancelled",
                                         value: bookingInsights.counts.cancelled,
@@ -449,7 +449,7 @@ export default function AdminDashboardPage() {
                                     }, {
                                         label: "Cancellation Rate",
                                         value: `${bookingInsights.cancellationRate}%`,
-                                        tone: "bg-neutral-50 text-neutral-700",
+                                        tone: "bg-[#f7f6ef] text-neutral-700",
                                     }].map((card) => (
                                         <div key={card.label} className={`rounded-lg border border-neutral-200 px-3 py-3 ${card.tone}`}>
                                             <p className="text-xs uppercase tracking-wide">{card.label}</p>
@@ -458,7 +458,7 @@ export default function AdminDashboardPage() {
                                     ))}
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3 px-4 pb-4 text-sm">
-                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-600 text-white font-semibold shadow-sm">
+                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white font-semibold shadow-sm">
                                         <span>Total Revenue</span>
                                         <span className="text-lg">{formatINR(bookingInsights.revenue)}</span>
                                     </div>
@@ -505,7 +505,7 @@ export default function AdminDashboardPage() {
                                         <span className="text-xs text-neutral-500">Sparkline</span>
                                     </div>
                                     <div className="h-36">
-                                        <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full text-orange-600">
+                                        <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full text-emerald-600">
                                             <polyline
                                                 fill="none"
                                                 stroke="currentColor"
@@ -556,7 +556,7 @@ export default function AdminDashboardPage() {
                                                     <td className="px-4 py-3 text-neutral-700">{u.role || "user"}</td>
                                                     <td className="px-4 py-3 text-neutral-600">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}</td>
                                                     <td className="px-4 py-3 text-right flex justify-end gap-3">
-                                                        <button onClick={() => startEditUser(u)} className="text-sm text-orange-600 hover:underline">Edit</button>
+                                                        <button onClick={() => startEditUser(u)} className="text-sm text-emerald-600 hover:underline">Edit</button>
                                                         <button onClick={() => deleteUser(u._id)} className="text-sm text-red-600 hover:underline">Delete</button>
                                                     </td>
                                                 </tr>
@@ -643,7 +643,7 @@ export default function AdminDashboardPage() {
                                             loadUsers();
                                         }}
                                         disabled={savingUser}
-                                        className="flex-1 bg-orange-600 text-white rounded px-3 py-2 text-sm"
+                                        className="flex-1 bg-emerald-600 text-white rounded px-3 py-2 text-sm"
                                     >
                                         {savingUser ? (editingUserId ? 'Saving…' : 'Creating…') : editingUserId ? 'Update' : 'Create'}
                                     </button>
@@ -745,7 +745,7 @@ export default function AdminDashboardPage() {
                                                             // eslint-disable-next-line @next/next/no-img-element
                                                             <img src={resolveImageSrc(it.image)} alt={it.name || it.title || "item"} className="h-12 w-16 object-cover rounded border" />
                                                         ) : (
-                                                            <div className="h-12 w-16 rounded border bg-neutral-50 flex items-center justify-center text-xs text-neutral-500">
+                                                            <div className="h-12 w-16 rounded border bg-[#f7f6ef] flex items-center justify-center text-xs text-neutral-500">
                                                                 {(it.name || it.title || "I").slice(0, 1).toUpperCase()}
                                                             </div>
                                                         )}
@@ -755,7 +755,7 @@ export default function AdminDashboardPage() {
                                                     <td className="px-4 py-3 text-neutral-900">₹{Number(it.price || 0).toFixed(2)}</td>
                                                     <td className="px-4 py-3 text-neutral-700">{it.available === false ? "No" : "Yes"}</td>
                                                     <td className="px-4 py-3 text-right flex justify-end gap-2">
-                                                        <button onClick={() => editItem(it)} className="text-sm text-orange-600 hover:underline">Edit</button>
+                                                        <button onClick={() => editItem(it)} className="text-sm text-emerald-600 hover:underline">Edit</button>
                                                         <button onClick={() => deleteItem(it._id || it.id)} className="text-sm text-red-600 hover:underline">Delete</button>
                                                     </td>
                                                 </tr>
@@ -835,7 +835,7 @@ export default function AdminDashboardPage() {
                                     </select>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={saveItem} disabled={savingItem} className="flex-1 bg-orange-600 text-white rounded px-3 py-2 text-sm">{savingItem ? "Saving…" : itemForm._id ? "Update" : "Add"}</button>
+                                    <button onClick={saveItem} disabled={savingItem} className="flex-1 bg-emerald-600 text-white rounded px-3 py-2 text-sm">{savingItem ? "Saving…" : itemForm._id ? "Update" : "Add"}</button>
                                     {itemForm._id && <button onClick={() => { setItemForm({ name: "", description: "", price: 0, category: "", available: true, image: "" }); setItemImagePreview(undefined); }} className="px-3 py-2 text-sm border rounded">Clear</button>}
                                 </div>
                             </div>

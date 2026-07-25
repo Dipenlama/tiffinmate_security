@@ -133,7 +133,7 @@ function BookingsPageInner() {
   };
 
   return (
-    <main className="min-h-screen bg-neutral-50">
+    <main className="min-h-screen bg-[#f7f6ef]">
       <div className="max-w-6xl mx-auto px-6 py-10">
         <header className="mb-6 flex items-center justify-between">
           <div>
@@ -150,7 +150,7 @@ function BookingsPageInner() {
         )}
 
         {error && !loading && !forbidden && (
-          <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-4 mb-6" role="alert">
+          <div className="bg-orange-50 border border-orange-200 text-orange-700 rounded-lg p-4 mb-6" role="alert">
             <div className="font-semibold mb-1">Unable to load bookings</div>
             <div className="text-sm mb-3">{error}</div>
             <button onClick={onRetry} className="px-3 py-2 bg-neutral-900 text-white rounded text-sm">Retry</button>
@@ -189,14 +189,14 @@ function BookingsPageInner() {
                     <td className="px-4 py-3"><span className="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700">{bk.status || 'pending'}</span></td>
                     <td className="px-4 py-3 text-neutral-600">{bk.createdAt ? new Date(bk.createdAt).toLocaleString() : '—'}</td>
                     <td className="px-4 py-3 text-right">
-                      <button className="text-sm text-orange-600 hover:text-orange-700">View</button>
+                      <button className="text-sm text-emerald-600 hover:text-emerald-700">View</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
-            <div className="flex items-center justify-between px-4 py-3 bg-neutral-50 border-t border-neutral-200">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#f7f6ef] border-t border-neutral-200">
               <div className="text-sm text-neutral-600">Page {data.page} of {data.totalPages} • {data.total} total</div>
               <div className="flex items-center gap-2">
                 <button

@@ -39,13 +39,18 @@ const EXEMPT_PATHS = new Set([
 ]);
 
 export function issueCsrfToken(req: Request, res: Response) {
-    const token = crypto.randomBytes(32).toString("hex");
-    res.cookie(CSRF_COOKIE, token, {
-        httpOnly: false, // must be readable by same-origin frontend JS to echo back in a header
-        secure: IS_PRODUCTION,
-        sameSite: "strict",
-        path: "/",
-    });
+    // Reuse the browser session's token. Generating a new token on every GET
+    // caused another tab/request to replace the cookie while callers still
+    // held the previous header value, producing intermittent 403 responses.
+    const token = req.cookies?.[CSRF_COOKIE] || crypto.randomBytes(32).toString("hex");
+    if (!req.cookies?.[CSRF_COOKIE]) {
+        res.cookie(CSRF_COOKIE, token, {
+            httpOnly: false, // must be readable by same-origin frontend JS to echo back in a header
+            secure: IS_PRODUCTION,
+            sameSite: "strict",
+            path: "/",
+        });
+    }
     return res.status(200).json({ success: true, csrfToken: token });
 }
 

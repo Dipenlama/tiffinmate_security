@@ -1,10 +1,20 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, Utensils, ShieldCheck } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { postLogin, postMfaLoginVerify } from '../../../lib/api';
-import { setSessionMarkers } from '../../../lib/session-markers';
+import React, { useState } from "react";
+import {
+  ArrowRight,
+  Clock3,
+  Eye,
+  EyeOff,
+  Leaf,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Utensils,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { postLogin, postMfaLoginVerify } from "../../../lib/api";
+import { setSessionMarkers } from "../../../lib/session-markers";
 
 type SessionUser = {
   role?: string;
@@ -17,59 +27,42 @@ function errorMessage(error: unknown, fallback: string): string {
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // MFA step: when the backend reports mfaRequired, we hold onto the
-  // short-lived mfaToken and show a second form asking for the 6-digit
-  // authenticator code instead of redirecting immediately. No session
-  // cookie exists yet at this point - the password step alone is not enough
-  // to sign in on an MFA-enrolled account (OWASP ASVS V2.8).
   const [mfaToken, setMfaToken] = useState<string | null>(null);
-  const [mfaCode, setMfaCode] = useState('');
-
+  const [mfaCode, setMfaCode] = useState("");
   const router = useRouter();
 
   const completeLogin = (userData?: SessionUser | null) => {
-    const role = userData?.role || 'user';
-    // Non-secret marker cookies for middleware.ts routing only - see
-    // lib/session-markers.ts and the comment in middleware.ts for why the
-    // real httpOnly session cookies can't be used for this directly.
+    const role = userData?.role || "user";
     setSessionMarkers(role);
-    // Cache non-sensitive profile fields (id/email/username/role - never a
-    // token) so pages like /bookings can know "who am I" without an extra
-    // round trip. This is unrelated to the vulnerability that was fixed:
-    // the session credential itself no longer touches localStorage at all.
     try {
-      localStorage.setItem('user', JSON.stringify(userData || {}));
+      localStorage.setItem("user", JSON.stringify(userData || {}));
     } catch {}
+
     const requestedPath = (() => {
-      if (typeof window === 'undefined') return null;
-      const next = new URLSearchParams(window.location.search).get('next');
-      return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+      if (typeof window === "undefined") return null;
+      const next = new URLSearchParams(window.location.search).get("next");
+      return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
     })();
-    if (role === 'admin') {
-      router.replace(requestedPath || '/admin/dashboard');
-    } else if (requestedPath && !requestedPath.startsWith('/admin')) {
+
+    if (role === "admin") {
+      router.replace(requestedPath || "/admin/dashboard");
+    } else if (requestedPath && !requestedPath.startsWith("/admin")) {
       router.replace(requestedPath);
     } else {
-      router.replace('/dashboard');
+      router.replace("/dashboard");
     }
     router.refresh();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
     setIsSubmitting(true);
     try {
-      // The backend sets httpOnly access/refresh token cookies directly via
-      // Set-Cookie on this response - there is nothing for the frontend to
-      // read or store itself (that's the point: an XSS payload running in
-      // this page can no longer get at the session token via
-      // localStorage/document.cookie, unlike the old implementation).
       const json = await postLogin(email, password);
       if (json?.mfaRequired) {
         setMfaToken(json.mfaToken);
@@ -77,14 +70,14 @@ const LoginPage: React.FC = () => {
       }
       completeLogin(json?.data);
     } catch (err: unknown) {
-      setError(errorMessage(err, 'Login failed'));
+      setError(errorMessage(err, "Login failed"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleMfaSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleMfaSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!mfaToken) return;
     setError(null);
     setIsSubmitting(true);
@@ -92,171 +85,228 @@ const LoginPage: React.FC = () => {
       const json = await postMfaLoginVerify(mfaToken, mfaCode);
       completeLogin(json?.data);
     } catch (err: unknown) {
-      setError(errorMessage(err, 'Invalid authentication code'));
+      setError(errorMessage(err, "Invalid authentication code"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-stretch bg-white font-sans">
-      {/* Left Side: Branding & Image (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-orange-500 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-            {/* Pattern or subtle food texture can go here */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white via-transparent to-transparent opacity-20"></div>
-        </div>
+    <div className="relative min-h-[calc(100vh-73px)] overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
+      <div className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rounded-full bg-emerald-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 bottom-4 h-80 w-80 rounded-full bg-orange-200/40 blur-3xl" />
 
-        <div className="relative z-10 w-full flex flex-col justify-center items-center text-white p-12 text-center">
-          <Utensils size={80} className="mb-6" />
-          <h1 className="text-5xl font-extrabold mb-4 tracking-tight">TiffinMate</h1>
-          <p className="text-xl font-light max-w-md">
-            The taste of home, delivered straight to your doorstep. Join our community of food lovers today.
-          </p>
-        </div>
-      </div>
+      <div className="relative mx-auto grid min-h-[680px] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-emerald-900/10 bg-[#fffef9] shadow-[0_30px_90px_-45px_rgba(6,78,59,0.55)] lg:grid-cols-[1.05fr_0.95fr]">
+        <aside className="relative hidden overflow-hidden bg-emerald-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute -right-32 -top-28 h-96 w-96 rounded-full border-[70px] border-emerald-700/30" />
+          <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-orange-500/15 blur-2xl" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(20,184,166,0.08)_100%)]" />
 
-      {/* Right Side: Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 md:px-24 lg:px-32">
-        <div className="max-w-md w-full mx-auto">
-          <div className="mb-10 lg:hidden flex items-center gap-2 text-orange-600">
-             <Utensils size={32} />
-             <span className="text-2xl font-bold">TiffinMate</span>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-950/30">
+                <Utensils size={24} />
+              </span>
+              <span className="text-2xl font-extrabold tracking-tight">Tiffin Mate</span>
+            </div>
           </div>
 
-          {mfaToken ? (
-            <>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Two-Factor Verification</h2>
-              <p className="text-gray-500 mb-8">Enter the 6-digit code from your authenticator app.</p>
+          <div className="relative z-10 max-w-lg">
+            <span className="inline-flex rounded-full border border-emerald-400/25 bg-emerald-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">
+              Fresh food, familiar comfort
+            </span>
+            <h1 className="mt-7 text-5xl font-extrabold leading-[1.08] tracking-tight">
+              Home-style meals,
+              <span className="block text-emerald-300">ready when you are.</span>
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-emerald-100/75">
+              Sign in to plan your tiffin, manage bookings, and enjoy wholesome meals prepared for your routine.
+            </p>
 
-              <form onSubmit={handleMfaSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Authentication Code</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <ShieldCheck size={18} className="text-gray-400" />
+            <div className="mt-9 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm">
+                <Leaf size={20} className="text-emerald-300" />
+                <p className="mt-3 text-sm font-semibold">Freshly prepared</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-100/60">Balanced meals made daily.</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm">
+                <Clock3 size={20} className="text-orange-300" />
+                <p className="mt-3 text-sm font-semibold">Made for your day</p>
+                <p className="mt-1 text-xs leading-5 text-emerald-100/60">Lunch and dinner on schedule.</p>
+              </div>
+            </div>
+          </div>
+
+          <p className="relative z-10 text-xs tracking-wide text-emerald-100/45">
+            Simple meals. Reliable delivery. Better days.
+          </p>
+        </aside>
+
+        <main className="flex items-center px-6 py-10 sm:px-12 lg:px-16">
+          <div className="mx-auto w-full max-w-md">
+            <div className="mb-9 flex items-center gap-3 lg:hidden">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-200">
+                <Utensils size={22} />
+              </span>
+              <span className="text-2xl font-extrabold tracking-tight text-emerald-950">Tiffin Mate</span>
+            </div>
+
+            {mfaToken ? (
+              <>
+                <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <ShieldCheck size={24} />
+                </span>
+                <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-emerald-950">Verify it&apos;s you</h2>
+                <p className="mt-2 text-sm leading-6 text-neutral-600">
+                  Enter the six-digit code from your authenticator app to continue.
+                </p>
+
+                <form onSubmit={handleMfaSubmit} className="mt-8 space-y-5">
+                  <div>
+                    <label htmlFor="mfa-code" className="mb-2 block text-sm font-semibold text-neutral-800">
+                      Authentication code
+                    </label>
+                    <div className="relative">
+                      <ShieldCheck size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input
+                        id="mfa-code"
+                        type="text"
+                        inputMode="numeric"
+                        autoFocus
+                        required
+                        maxLength={6}
+                        className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-4 text-lg font-semibold tracking-[0.35em] text-neutral-900 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                        placeholder="123456"
+                        value={mfaCode}
+                        onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+                      />
                     </div>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoFocus
-                      required
-                      maxLength={6}
-                      className="block w-full pl-10 pr-3 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all tracking-widest"
-                      placeholder="123456"
-                      value={mfaCode}
-                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
-                    />
                   </div>
-                </div>
 
-                {error && <p className="text-sm text-red-600">{error}</p>}
+                  {error && (
+                    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {error}
+                    </p>
+                  )}
 
-                <button
-                  type="submit"
-                  disabled={isSubmitting || mfaCode.length !== 6}
-                  className="w-full bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-orange-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shadow-lg shadow-orange-200"
-                >
-                  {isSubmitting ? 'Verifying...' : 'Verify'}
-                </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || mfaCode.length !== 6}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3.5 font-bold text-white shadow-lg shadow-emerald-200/70 transition hover:-translate-y-0.5 hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                  >
+                    {isSubmitting ? "Verifying..." : "Verify and continue"}
+                    {!isSubmitting && <ArrowRight size={18} />}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => { setMfaToken(null); setMfaCode(''); setError(null); }}
-                  className="w-full text-sm font-medium text-gray-500 hover:text-gray-700"
-                >
-                  Back to login
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-              <p className="text-gray-500 mb-8">Please enter your credentials to access your account.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaToken(null);
+                      setMfaCode("");
+                      setError(null);
+                    }}
+                    className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
+                  >
+                    Back to login
+                  </button>
+                </form>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-600">Welcome back</p>
+                <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-emerald-950">Sign in to your account</h2>
+                <p className="mt-3 text-sm leading-6 text-neutral-600">
+                  Continue to your meals, bookings, and delivery schedule.
+                </p>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail size={18} className="text-gray-400" />
+                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                  <div>
+                    <label htmlFor="login-email" className="mb-2 block text-sm font-semibold text-neutral-800">
+                      Email address
+                    </label>
+                    <div className="relative">
+                      <Mail size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input
+                        id="login-email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-4 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
-                    <input
-                      type="email"
-                      required
-                      className="block w-full pl-10 pr-3 py-3 border text-gray-700 border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                      placeholder="name@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
                   </div>
-                </div>
 
-                {/* Password Field */}
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-700">Password</label>
-                    <button type="button" onClick={() => router.push('/forgot-password')} className="text-sm font-medium text-orange-600 hover:text-orange-500">
-                      Forgot password?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock size={18} className="text-gray-400" />
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label htmlFor="login-password" className="text-sm font-semibold text-neutral-800">
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => router.push("/forgot-password")}
+                        className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-900"
+                      >
+                        Forgot password?
+                      </button>
                     </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="relative">
+                      <Lock size={19} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input
+                        id="login-password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        autoComplete="current-password"
+                        className="w-full rounded-xl border border-neutral-300 bg-white py-3.5 pl-12 pr-12 text-neutral-900 placeholder:text-neutral-400 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-neutral-400 transition hover:text-neutral-700"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {error}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3.5 font-bold text-white shadow-lg shadow-emerald-200/70 transition hover:-translate-y-0.5 hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                  >
+                    {isSubmitting ? "Signing in..." : "Sign in"}
+                    {!isSubmitting && <ArrowRight size={18} />}
+                  </button>
+                </form>
+
+                <div className="mt-8 border-t border-neutral-200 pt-6 text-center">
+                  <p className="text-sm text-neutral-600">
+                    New to Tiffin Mate?
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => router.push("/register")}
+                      className="ml-2 font-bold text-emerald-700 transition hover:text-emerald-900 hover:underline"
                     >
-                      {showPassword ? <EyeOff size={18} className="text-gray-400" /> : <Eye size={18} className="text-gray-400" />}
+                      Create an account
                     </button>
-                  </div>
+                  </p>
                 </div>
-
-                {error && <p className="text-sm text-red-600">{error}</p>}
-
-                {/* Login Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-orange-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shadow-lg shadow-orange-200"
-                >
-                  {isSubmitting ? 'Signing in...' : 'Sign In'}
-                </button>
-              </form>
-
-              <div className="mt-8 relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-center">
-                 <p className="text-gray-600">
-                   New to TiffinMate?
-                   <button
-                   onClick={() => router.push("/register")}
-                   className="ml-2 font-semibold text-orange-600 hover:underline">
-                     Create an account
-                   </button>
-                 </p>
-              </div>
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   );

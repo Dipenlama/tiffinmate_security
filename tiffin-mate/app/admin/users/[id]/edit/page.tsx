@@ -74,7 +74,7 @@ export default function UserEditPage() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button className="bg-orange-600 text-white px-4 py-2 rounded" type="submit">Save</button>
+            <button className="bg-emerald-600 text-white px-4 py-2 rounded" type="submit">Save</button>
             <button type="button" onClick={() => router.back()} className="px-4 py-2 border rounded">Cancel</button>
           </div>
         </form>

@@ -74,7 +74,7 @@ export default function CheckoutPage() {
         </div>
 
         <div>
-          <button onClick={placeOrder} disabled={submitting} className="px-4 py-2 bg-orange-600 text-white rounded">
+          <button onClick={placeOrder} disabled={submitting} className="px-4 py-2 bg-emerald-600 text-white rounded">
             {submitting ? 'Placing order…' : 'Place order'}
           </button>
         </div>

@@ -15,13 +15,13 @@ import thukpa from "../../assets/images/thukpa.png";
 
 const Hero = () => (
   <section className="max-w-7xl mx-auto px-6 pt-10 pb-8">
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-xl grid md:grid-cols-2 gap-6 items-center p-8">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-orange-500 to-rose-500 text-white shadow-xl grid md:grid-cols-2 gap-6 items-center p-8">
       <div className="relative z-10 space-y-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-xs uppercase tracking-wide">Daily tiffin</div>
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight drop-shadow-sm">Home-style meals, on time.</h1>
         <p className="text-base md:text-lg text-white/90 max-w-xl">Pick a package or book a special—freshly cooked food delivered in neat time slots.</p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/packages" className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white text-orange-600 font-semibold shadow-sm hover:-translate-y-0.5 transition">Browse packages</Link>
+          <Link href="/packages" className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white text-emerald-600 font-semibold shadow-sm hover:-translate-y-0.5 transition">Browse packages</Link>
           <Link href="/menu" className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/15 transition">See today’s menu</Link>
         </div>
       </div>
@@ -171,7 +171,7 @@ const DashboardPage = () => {
   }).slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-white text-neutral-900 font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-orange-50 to-rose-50 text-neutral-900 font-sans">
       <main className="space-y-6">
         <Hero />
         <Deals />
@@ -211,7 +211,7 @@ const DashboardPage = () => {
                     </div>
 
                     <div className="mt-4">
-                      <button className="w-full bg-white text-orange-600 hover:bg-orange-50 rounded-full px-4 py-2 font-semibold shadow-sm">View package</button>
+                      <button className="w-full bg-white text-emerald-600 hover:bg-emerald-50 rounded-full px-4 py-2 font-semibold shadow-sm">View package</button>
                     </div>
                   </div>
                 </div>
@@ -226,14 +226,14 @@ const DashboardPage = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="flex items-center gap-3">
               <h3 className="text-lg font-semibold">Special Items</h3>
-              <Link href="/menu" className="text-sm px-3 py-1.5 rounded-full bg-orange-600 text-white shadow-sm hover:-translate-y-0.5 transition">View all</Link>
+              <Link href="/menu" className="text-sm px-3 py-1.5 rounded-full bg-emerald-600 text-white shadow-sm hover:-translate-y-0.5 transition">View all</Link>
             </div>
             <div className="flex flex-wrap gap-2 text-sm">
               {[{ key: 'all', label: 'All' }, { key: 'veg', label: 'Veg' }, { key: 'non-veg', label: 'Non-Veg' }, { key: 'mixed', label: 'Mixed' }, { key: 'premium', label: 'Premium' }].map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setSpecialFilter(f.key)}
-                  className={`px-3 py-1 rounded-full border transition ${specialFilter === f.key ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-neutral-700 border-neutral-200 hover:border-orange-300'}`}
+                  className={`px-3 py-1 rounded-full border transition ${specialFilter === f.key ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-neutral-700 border-neutral-200 hover:border-emerald-300'}`}
                 >
                   {f.label}
                 </button>
@@ -272,7 +272,7 @@ const DashboardPage = () => {
                           <p className="text-sm text-neutral-600 line-clamp-2">{it.description || 'Freshly prepared by our kitchen.'}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-orange-600">{price > 0 ? `₹${price.toFixed(2)}` : '₹—'}</div>
+                          <div className="text-xl font-bold text-rose-600">{price > 0 ? `₹${price.toFixed(2)}` : '₹—'}</div>
                           <div className={`text-[11px] font-semibold mt-1 px-2 py-1 rounded-full border ${unavailable ? 'text-red-600 bg-red-50 border-red-100' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
                             {unavailable ? 'Unavailable' : 'Available'}
                           </div>
@@ -282,7 +282,7 @@ const DashboardPage = () => {
                       <div className="flex items-center justify-between gap-2">
                         <div className="text-[11px] text-neutral-500">ID: {it.id}</div>
                         <div className="flex gap-2">
-                          <Link href={`/menu/${it.id}`} className="px-3 py-2 border border-neutral-200 rounded-md text-sm text-neutral-800 hover:bg-neutral-50">View</Link>
+                          <Link href={`/menu/${it.id}`} className="px-3 py-2 border border-neutral-200 rounded-md text-sm text-neutral-800 hover:bg-[#f7f6ef]">View</Link>
                         </div>
                       </div>
                     </div>
