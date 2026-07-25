@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { postLogout } from "../../lib/api";
 import { clearSessionMarkers, hasSessionMarker } from "../../lib/session-markers";
 
@@ -61,21 +62,45 @@ export default function Navbar() {
         </div>
 
         {!hideAuthActions && isLoggedIn && (
-          <div className="flex items-center gap-3">
-            <Link
-              href="/profile"
-              className="flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-900 text-white text-sm hover:bg-neutral-800"
-            >
-              <span className="inline-block w-6 h-6 rounded-full bg-white/20" aria-hidden />
-              <span>Profile</span>
-            </Link>
-            <button
-              onClick={logout}
-              className="px-3 py-1 rounded-full border border-neutral-300 text-neutral-700 text-sm hover:bg-neutral-100"
-            >
-              Logout
-            </button>
-          </div>
+          <details className="group relative">
+            <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full border border-neutral-200 bg-white py-1.5 pl-1.5 pr-3 text-sm font-semibold text-neutral-800 shadow-sm transition hover:border-orange-200 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 [&::-webkit-details-marker]:hidden">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-sm">
+                <UserRound size={19} aria-hidden="true" />
+              </span>
+              <span className="hidden sm:inline">My profile</span>
+              <ChevronDown
+                size={16}
+                aria-hidden="true"
+                className="text-neutral-500 transition-transform group-open:rotate-180"
+              />
+            </summary>
+
+            <div className="absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 shadow-[0_18px_50px_-18px_rgba(15,23,42,0.35)]">
+              <div className="px-3 py-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">Account</p>
+              </div>
+
+              <div className="my-1 border-t border-neutral-100" />
+
+              <Link
+                href="/profile"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-orange-50 hover:text-orange-700"
+              >
+                <UserRound size={18} aria-hidden="true" />
+                Profile settings
+              </Link>
+              <div className="my-1 border-t border-neutral-100" />
+
+              <button
+                type="button"
+                onClick={logout}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
+              >
+                <LogOut size={18} aria-hidden="true" />
+                Logout
+              </button>
+            </div>
+          </details>
         )}
 
         {!hideAuthActions && !isLoggedIn && (

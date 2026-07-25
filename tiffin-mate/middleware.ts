@@ -67,10 +67,12 @@ export function middleware(request: NextRequest) {
   // markers say - a forged `logged_in=1` cookie gets you a page shell that
   // immediately 401s on its first API call, nothing more.
   const token = request.cookies.get('logged_in')?.value;
+  const sessionVersion = request.cookies.get('session_version')?.value;
   const role = request.cookies.get('role')?.value;
+  const hasCurrentSession = token === '1' && sessionVersion === '2';
 
   // Protected routes: redirect to login when no token
-  if (!token) {
+  if (!hasCurrentSession) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     // preserve intended path to return after login if needed

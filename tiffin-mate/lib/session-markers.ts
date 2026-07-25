@@ -4,12 +4,15 @@
 // which the frontend cannot read or write (by design) and which every
 // actual API call is authorized against server-side regardless of these
 // markers. See the comment in middleware.ts for why this split exists.
-const MARKER_MAX_AGE = 7 * 24 * 60 * 60; // 7 days - mirrors the backend refresh token lifetime
+const SESSION_VERSION = '2';
 
 export function setSessionMarkers(role: string) {
   if (typeof document === 'undefined') return;
-  document.cookie = `logged_in=1; path=/; max-age=${MARKER_MAX_AGE}; SameSite=Lax`;
-  document.cookie = `role=${role}; path=/; max-age=${MARKER_MAX_AGE}; SameSite=Lax`;
+  // No Max-Age/Expires: these are browser-session cookies and disappear when
+  // the browser session ends instead of remembering an account for seven days.
+  document.cookie = 'logged_in=1; path=/; SameSite=Lax';
+  document.cookie = `role=${role}; path=/; SameSite=Lax`;
+  document.cookie = `session_version=${SESSION_VERSION}; path=/; SameSite=Lax`;
   window.dispatchEvent(new Event('auth-state-changed'));
 }
 
@@ -17,6 +20,7 @@ export function clearSessionMarkers() {
   if (typeof document === 'undefined') return;
   document.cookie = 'logged_in=; path=/; max-age=0';
   document.cookie = 'role=; path=/; max-age=0';
+  document.cookie = 'session_version=; path=/; max-age=0';
   window.dispatchEvent(new Event('auth-state-changed'));
 }
 
@@ -25,5 +29,8 @@ export function clearSessionMarkers() {
 // shortcut only - never a security check.
 export function hasSessionMarker(): boolean {
   if (typeof document === 'undefined') return false;
-  return document.cookie.split(';').some((c) => c.trim().startsWith('logged_in='));
+  const cookies = document.cookie.split(';').map((cookie) => cookie.trim());
+  const loggedIn = cookies.some((cookie) => cookie === 'logged_in=1');
+  const currentVersion = cookies.some((cookie) => cookie === `session_version=${SESSION_VERSION}`);
+  return loggedIn && currentVersion;
 }

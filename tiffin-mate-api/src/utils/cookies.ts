@@ -16,9 +16,6 @@ export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
 export const ROLE_COOKIE = "role";
 
-const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes - matches the JWT's expiresIn
-const REFRESH_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-
 export function setAuthCookies(
     res: Response,
     params: { accessToken: string; refreshToken: string; role: string }
@@ -28,7 +25,6 @@ export function setAuthCookies(
         secure: IS_PRODUCTION,
         sameSite: "strict",
         path: "/",
-        maxAge: ACCESS_TOKEN_MAX_AGE_MS,
     });
 
     res.cookie(REFRESH_TOKEN_COOKIE, params.refreshToken, {
@@ -38,7 +34,6 @@ export function setAuthCookies(
         // Scoped to the auth routes only, so this longer-lived, more powerful
         // token is never sent to (or leaked by) unrelated API endpoints.
         path: "/api/auth",
-        maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 
     // Not secret - only used by Next.js middleware / the frontend to decide
@@ -49,7 +44,6 @@ export function setAuthCookies(
         secure: IS_PRODUCTION,
         sameSite: "lax",
         path: "/",
-        maxAge: REFRESH_TOKEN_MAX_AGE_MS,
     });
 }
 
