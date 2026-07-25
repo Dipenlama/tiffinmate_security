@@ -39,16 +39,29 @@ export function encryptMfaSecret(plainSecret: string): string {
     return `${iv.toString("hex")}:${authTag.toString("hex")}:${ciphertext.toString("hex")}`;
 }
 
-export function decryptMfaSecret(encrypted: string): string {
-    const parts = encrypted.split(":");
-    if (parts.length !== 3) {
-        // Secrets written before encryption was introduced (or a corrupted
-        // row) won't have the iv:authTag:ciphertext shape - fail loudly
-        // rather than silently mis-decrypting into garbage that would never
-        // match any TOTP code.
-        throw new Error("Malformed encrypted MFA secret");
+// An encrypted value is always exactly 3 hex-encoded, colon-separated
+// segments (iv:authTag:ciphertext). Anything else is a raw base32 TOTP
+// secret (e.g. "JBSWY3DPEHPK3PXP") written by a server version that
+// predates at-rest encryption - accounts that enrolled MFA before this
+// change must keep working, not get hard-locked out of their own account.
+function isEncryptedForm(value: string): boolean {
+    const parts = value.split(":");
+    return parts.length === 3 && parts.every((p) => /^[0-9a-fA-F]+$/.test(p));
+}
+
+// True when the stored value still needs migrating to the encrypted form -
+// callers that successfully verify a code against a legacy plaintext secret
+// should re-save it via encryptMfaSecret so it self-heals on next use.
+export function needsMfaSecretMigration(stored: string): boolean {
+    return !isEncryptedForm(stored);
+}
+
+export function decryptMfaSecret(stored: string): string {
+    if (!isEncryptedForm(stored)) {
+        // Legacy plaintext secret - nothing to decrypt, hand it back as-is.
+        return stored;
     }
-    const [ivHex, authTagHex, ciphertextHex] = parts;
+    const [ivHex, authTagHex, ciphertextHex] = stored.split(":");
     const decipher = crypto.createDecipheriv(ALGORITHM, getKey(), Buffer.from(ivHex, "hex"));
     decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
     const plaintext = Buffer.concat([

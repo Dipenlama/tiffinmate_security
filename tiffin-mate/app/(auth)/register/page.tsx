@@ -5,6 +5,7 @@ import { Mail, Lock, Eye, EyeOff, User, Utensils } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { postRegister } from '../../../lib/api';
+import { formatPasswordError, validatePassword } from '../../../lib/password-validation';
 
 const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +30,11 @@ const SignupPage: React.FC = () => {
       setError('Passwords do not match.');
       return;
     }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
@@ -41,8 +47,7 @@ const SignupPage: React.FC = () => {
         router.push('/login');
       }, 800);
     } catch (err: any) {
-      const message = err?.message || 'Signup failed. Please try again.';
-      setError(message);
+      setError(formatPasswordError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -82,6 +87,7 @@ const SignupPage: React.FC = () => {
                 <input
                   type="text"
                   required
+                  minLength={9}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                   placeholder="Full name"
                   value={fullName}
@@ -100,6 +106,7 @@ const SignupPage: React.FC = () => {
                 <input
                   type="email"
                   required
+                  minLength={9}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
                   placeholder="name@example.com"
                   value={email}

@@ -39,6 +39,12 @@ const envSchema = z.object({
     (val) => (val === '' ? undefined : val),
     z.string().min(1).optional()
   ),
+  SMTP_HOST: z.preprocess((val) => (val === '' ? undefined : val), z.string().optional()),
+  SMTP_PORT: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().int().positive().optional()),
+  SMTP_USER: z.preprocess((val) => (val === '' ? undefined : val), z.string().optional()),
+  SMTP_PASS: z.preprocess((val) => (val === '' ? undefined : val), z.string().optional()),
+  MAIL_FROM: z.preprocess((val) => (val === '' ? undefined : val), z.string().optional()),
+  FRONTEND_URL: z.string().url().default('http://localhost:3000'),
 }).superRefine((val, ctx) => {
   if (val.NODE_ENV === 'production' && !val.CAPTCHA_SECRET_KEY) {
     ctx.addIssue({
@@ -70,3 +76,9 @@ export const MONGO_URI: string = env.MONGO_URI;
 export const ACCESS_TOKEN_SECRET: string = env.ACCESS_TOKEN_SECRET;
 export const MFA_ENCRYPTION_KEY: string = env.MFA_ENCRYPTION_KEY;
 export const CAPTCHA_SECRET_KEY: string | undefined = env.CAPTCHA_SECRET_KEY;
+export const SMTP_HOST: string | undefined = env.SMTP_HOST;
+export const SMTP_PORT: number = env.SMTP_PORT || 587;
+export const SMTP_USER: string | undefined = env.SMTP_USER;
+export const SMTP_PASS: string | undefined = env.SMTP_PASS;
+export const MAIL_FROM: string | undefined = env.MAIL_FROM || env.SMTP_USER;
+export const FRONTEND_URL: string = env.FRONTEND_URL;

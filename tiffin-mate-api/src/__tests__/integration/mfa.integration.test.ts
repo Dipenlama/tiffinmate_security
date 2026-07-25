@@ -111,6 +111,41 @@ describe("MFA (TOTP) integration", () => {
 		expect(verify.status).toBe(200);
 	});
 
+	// Regression test for a real account lockout: any account that enrolled
+	// MFA before at-rest encryption was introduced has a raw base32 secret
+	// (no colons) in mfaSecret. decryptMfaSecret used to throw "Malformed
+	// encrypted MFA secret" for that shape, so those accounts could neither
+	// log in nor disable MFA to recover. Simulates that pre-existing state
+	// directly (bypassing the normal encrypted setupMfa/confirmMfaSetup flow)
+	// rather than relying on it, since the whole point is this account never
+	// went through the new encrypted enrollment path.
+	it("logs in an account with a legacy (pre-encryption) plaintext MFA secret, then migrates it", async () => {
+		const email = "mfalegacy@example.com";
+		await request(app).post("/api/auth/register").send({
+			email,
+			username: "mfalegacy",
+			password: "Str0ng!Passw0rd",
+			confirmPassword: "Str0ng!Passw0rd",
+		});
+		const legacySecret = authenticator.generateSecret();
+		await UserModel.findOneAndUpdate({ email }, { $set: { mfaEnabled: true, mfaSecret: legacySecret } });
+
+		const login = await request(app).post("/api/auth/login").send({ email, password: "Str0ng!Passw0rd" });
+		expect(login.body.mfaRequired).toBe(true);
+
+		const code = authenticator.generate(legacySecret);
+		const verify = await request(app)
+			.post("/api/auth/mfa/login-verify")
+			.send({ mfaToken: login.body.mfaToken, code });
+		expect(verify.status).toBe(200);
+		expect(verify.body.token).toBeTruthy();
+
+		const migrated = await UserModel.findOne({ email });
+		expect(migrated?.mfaSecret).not.toBe(legacySecret);
+		expect(migrated?.mfaSecret?.split(":")).toHaveLength(3);
+		expect(decryptMfaSecret(migrated!.mfaSecret!)).toBe(legacySecret);
+	});
+
 	it("rejects mfa/verify-setup with an invalid code and does not enable MFA", async () => {
 		const token = await registerAndLogin("mfauser2@example.com", "mfauser2");
 		const setupRes = await request(app).post("/api/auth/mfa/setup").set("Authorization", `Bearer ${token}`);

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { fetchAdminUsers, deleteAdminUser, getCsrfToken, API_BASE } from '../../../lib/api';
 import { hasSessionMarker } from '../../../lib/session-markers';
+import { validatePassword } from '../../../lib/password-validation';
 
 export default function AdminUsersPage() {
   const [usersData, setUsersData] = useState<any>(null);
@@ -57,6 +58,11 @@ export default function AdminUsersPage() {
       alert('Passwords do not match');
       return;
     }
+    const passwordError = validatePassword(trimmedPassword);
+    if (passwordError) {
+      alert(passwordError);
+      return;
+    }
     try {
       const payload = {
         username: userForm.username.trim(),
@@ -73,7 +79,10 @@ export default function AdminUsersPage() {
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(json?.message || 'Failed to create user');
+        const serverMessage = json?.message || '';
+        alert(/password|too common|uppercase|digit|symbol|character/i.test(serverMessage)
+          ? 'Password must have at least 9 characters, one number, and one special character.'
+          : serverMessage || 'Failed to create user');
         return;
       }
       setMessage('User created');

@@ -1,4 +1,4 @@
-import { encryptMfaSecret, decryptMfaSecret, generateMfaSecret, verifyMfaCode } from "../../services/mfa.service";
+import { encryptMfaSecret, decryptMfaSecret, generateMfaSecret, verifyMfaCode, needsMfaSecretMigration } from "../../services/mfa.service";
 import { authenticator } from "otplib";
 
 describe("MFA secret encryption at rest", () => {
@@ -41,8 +41,21 @@ describe("MFA secret encryption at rest", () => {
 		expect(() => decryptMfaSecret(tampered)).toThrow();
 	});
 
-	it("rejects a malformed (non iv:authTag:ciphertext) value", () => {
-		expect(() => decryptMfaSecret("not-encrypted-at-all")).toThrow("Malformed encrypted MFA secret");
+	// Regression test: accounts that enrolled MFA before this encryption-at-
+	// rest change was introduced have a raw base32 secret (no colons) sitting
+	// in mfaSecret. The very first version of this fix threw "Malformed
+	// encrypted MFA secret" for any such value, hard-locking those accounts
+	// out of their own login (and out of disabling MFA, since that path
+	// decrypts too) - found via a real account hitting exactly this error.
+	it("treats a legacy plaintext (pre-encryption) secret as already-decrypted instead of throwing", () => {
+		const legacySecret = generateMfaSecret(); // no colons - not the iv:authTag:ciphertext shape
+		expect(decryptMfaSecret(legacySecret)).toBe(legacySecret);
+	});
+
+	it("flags a legacy plaintext secret as needing migration, but not a properly encrypted one", () => {
+		const legacySecret = generateMfaSecret();
+		expect(needsMfaSecretMigration(legacySecret)).toBe(true);
+		expect(needsMfaSecretMigration(encryptMfaSecret(legacySecret))).toBe(false);
 	});
 
 	it("a decrypted secret still produces a code that verifyMfaCode accepts", () => {

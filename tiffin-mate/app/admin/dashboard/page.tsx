@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getCsrfToken } from "../../../lib/api";
 import { hasSessionMarker } from "../../../lib/session-markers";
+import { PASSWORD_REQUIREMENTS_MESSAGE, validatePassword } from "../../../lib/password-validation";
 
 type User = {
     _id: string;
@@ -610,6 +611,10 @@ export default function AdminDashboardPage() {
                                                     return;
                                                 }
                                             }
+                                            if (trimmedPassword && validatePassword(trimmedPassword)) {
+                                                alert(PASSWORD_REQUIREMENTS_MESSAGE);
+                                                return;
+                                            }
 
                                             setSavingUser(true);
                                             const payload: any = {
@@ -626,7 +631,13 @@ export default function AdminDashboardPage() {
                                             const method = editingUserId ? 'PUT' : 'POST';
                                             const res = await apiSend(path, token, method, payload);
                                             setSavingUser(false);
-                                            if (!res.ok) { alert('Failed to save user'); return; }
+                                            if (!res.ok) {
+                                                const serverMessage = res?.data?.message || res?.data?.error || '';
+                                                alert(/password|too common|uppercase|digit|symbol|character/i.test(serverMessage)
+                                                    ? PASSWORD_REQUIREMENTS_MESSAGE
+                                                    : serverMessage || 'Failed to save user');
+                                                return;
+                                            }
                                             setUserForm({ username: '', email: '', password: '', confirmPassword: '', role: 'user' });
                                             setEditingUserId(null);
                                             loadUsers();

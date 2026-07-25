@@ -5,10 +5,11 @@ import bcryptjs from "bcryptjs";
 import { HttpError } from "../errors/http-error";
 import { ACCESS_TOKEN_SECRET } from "../config";
 import { sha256Hex, randomToken } from "../utils/hash";
-import { generateMfaSecret, buildMfaQrCode, verifyMfaCode, encryptMfaSecret, decryptMfaSecret } from "./mfa.service";
+import { generateMfaSecret, buildMfaQrCode, verifyMfaCode, encryptMfaSecret, decryptMfaSecret, needsMfaSecretMigration } from "./mfa.service";
 import { logAuditEvent } from "./audit-log.service";
 import jwt from "jsonwebtoken";
 import { IUser } from "../models/user.model";
+import { sendPasswordResetEmail } from "./mail.service";
 
 let userRepository=new UserRepository();
 let refreshTokenRepository = new RefreshTokenRepository();
@@ -151,9 +152,18 @@ export class AuthService{
         if(!user || !user.mfaEnabled || !user.mfaSecret){
             throw new HttpError(401, 'MFA is not enabled for this account');
         }
-        if(!verifyMfaCode(code, decryptMfaSecret(user.mfaSecret))){
+        const plainSecret = decryptMfaSecret(user.mfaSecret);
+        if(!verifyMfaCode(code, plainSecret)){
             logAuditEvent({ action: 'auth.mfa.verify.failure', outcome: 'failure', actorId: user._id.toString(), actorEmail: user.email, ip });
             throw new HttpError(401, 'Invalid authentication code');
+        }
+
+        // Self-heal accounts that enrolled MFA before at-rest encryption was
+        // introduced: now that we've proven the caller controls the secret
+        // (a valid code was just presented), migrate it to the encrypted
+        // form so it's protected at rest going forward.
+        if(needsMfaSecretMigration(user.mfaSecret)){
+            await userRepository.updateUserById(user._id.toString(), { $set: { mfaSecret: encryptMfaSecret(plainSecret) } } as any);
         }
 
         logAuditEvent({ action: 'auth.mfa.verify.success', outcome: 'success', actorId: user._id.toString(), actorEmail: user.email, ip });
@@ -259,12 +269,10 @@ export class AuthService{
             // do not reveal whether user exists
             return { success: true };
         }
-        const { v4: uuidv4 } = await import("uuid");
-        const token = uuidv4(); // plaintext token - only ever sent to the user, never stored
+        const token = randomToken(32); // plaintext token - only ever sent to the user, never stored
         const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
         await userRepository.updateUserById(user._id.toString(), { resetPasswordToken: hashResetToken(token), resetPasswordExpires: expires } as any);
-        // In real app send email. For now, log the reset link (contains the plaintext token).
-        console.log(`Password reset link: http://localhost:3000/reset-password?token=${token}`);
+        await sendPasswordResetEmail(user.email, token);
         logAuditEvent({ action: 'auth.password.reset.requested', outcome: 'success', actorId: user._id.toString(), actorEmail: user.email });
         return { success: true };
     }

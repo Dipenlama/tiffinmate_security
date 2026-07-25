@@ -3,6 +3,7 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { postResetPassword } from '../../../lib/api';
+import { formatPasswordError, validatePassword } from '../../../lib/password-validation';
 
 // useSearchParams() opts the whole page out of static prerendering unless
 // its usage is wrapped in a Suspense boundary - `next build` fails to
@@ -22,6 +23,7 @@ function ResetPasswordForm() {
   const token = params?.get('token') || '';
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) setStatus('missing');
@@ -29,6 +31,13 @@ function ResetPasswordForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setErrorMessage(passwordError);
+      setStatus('error');
+      return;
+    }
+    setErrorMessage(null);
     setStatus('loading');
     try {
       const json = await postResetPassword(token, password);
@@ -38,6 +47,7 @@ function ResetPasswordForm() {
         setStatus('error');
       }
     } catch (err) {
+      setErrorMessage(formatPasswordError(err));
       setStatus('error');
     }
   }
@@ -51,6 +61,7 @@ function ResetPasswordForm() {
           <input
             type="password"
             required
+            minLength={9}
             placeholder="New password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -66,7 +77,7 @@ function ResetPasswordForm() {
           </div>
         </form>
         {status === 'ok' && <p className="mt-4 text-green-600">Password reset successful.</p>}
-        {status === 'error' && <p className="mt-4 text-red-600">Failed to reset password.</p>}
+        {status === 'error' && <p className="mt-4 text-red-600">{errorMessage || 'Failed to reset password.'}</p>}
       </div>
     </div>
   );

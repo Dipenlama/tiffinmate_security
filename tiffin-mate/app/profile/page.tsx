@@ -12,6 +12,7 @@ import {
   updateProfile,
 } from '../../lib/api';
 import { clearSessionMarkers } from '../../lib/session-markers';
+import { PASSWORD_REQUIREMENTS_MESSAGE, validatePassword } from '../../lib/password-validation';
 
 type Profile = {
   name?: string;
@@ -141,11 +142,18 @@ export default function ProfilePage() {
       setPwMsg('Passwords do not match');
       return;
     }
+    if (validatePassword(newPassword)) {
+      setPwMsg(PASSWORD_REQUIREMENTS_MESSAGE);
+      return;
+    }
     setPwSaving(true);
     try {
       const res: any = await changePassword(currentPassword, newPassword);
       if (!res.ok) {
-        setPwMsg(res?.data?.message || res?.data?.error || 'Failed to change password');
+        const serverMessage = res?.data?.message || res?.data?.error || '';
+        setPwMsg(/password|too common|uppercase|digit|symbol|character/i.test(serverMessage)
+          ? PASSWORD_REQUIREMENTS_MESSAGE
+          : serverMessage || 'Failed to change password');
         return;
       }
       setPwMsg('Password changed');
@@ -279,6 +287,7 @@ export default function ProfilePage() {
                 <label className="block text-sm text-neutral-600 mb-1">Current password</label>
                 <input
                   type="password"
+                  minLength={9}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full border border-neutral-300 rounded px-3 py-2 bg-white text-neutral-900 placeholder:text-neutral-400"
@@ -289,6 +298,7 @@ export default function ProfilePage() {
                 <label className="block text-sm text-neutral-600 mb-1">New password</label>
                 <input
                   type="password"
+                  minLength={9}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full border border-neutral-300 rounded px-3 py-2 bg-white text-neutral-900 placeholder:text-neutral-400"

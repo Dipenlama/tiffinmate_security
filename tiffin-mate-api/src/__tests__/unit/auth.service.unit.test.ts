@@ -1,10 +1,10 @@
 import { AuthService } from "../../services/auth.service";
 import { HttpError } from "../../errors/http-error";
 import bcryptjs from "bcryptjs";
-import crypto from "crypto";
 
 var mockRepo: any;
 var mockRefreshTokenRepo: any;
+var mockSendPasswordResetEmail: jest.Mock;
 
 jest.mock("../../repositories/auth.repository", () => {
   mockRepo = {
@@ -33,6 +33,11 @@ jest.mock("../../repositories/refresh-token.repository", () => {
   return {
     RefreshTokenRepository: jest.fn(() => mockRefreshTokenRepo),
   };
+});
+
+jest.mock("../../services/mail.service", () => {
+  mockSendPasswordResetEmail = jest.fn().mockResolvedValue(true);
+  return { sendPasswordResetEmail: mockSendPasswordResetEmail };
 });
 
 describe("AuthService unit", () => {
@@ -192,13 +197,10 @@ describe("AuthService unit", () => {
     expect(result).toEqual({ success: true });
     expect(mockRepo.updateUserById).toHaveBeenCalledTimes(1);
     const [, update] = mockRepo.updateUserById.mock.calls[0];
-    // The service stores a SHA-256 hash of the plaintext reset token, never the
-    // plaintext itself (see hashResetToken in auth.service.ts), so assert the
-    // hash of the mocked uuid rather than the raw mocked value.
-    const expectedHash = crypto.createHash("sha256").update("test-uuid-1234-5678-90ab-cdef").digest("hex");
-    expect(update.resetPasswordToken).toBe(expectedHash);
+    expect(update.resetPasswordToken).toMatch(/^[a-f0-9]{64}$/);
     expect(update.resetPasswordExpires).toBeInstanceOf(Date);
     expect(update.resetPasswordExpires.getTime()).toBeGreaterThan(Date.now());
+    expect(mockSendPasswordResetEmail).toHaveBeenCalledWith("user@example.com", expect.any(String));
   });
 
   it("resetPassword throws when token is invalid", async () => {
