@@ -18,7 +18,7 @@ class AdminBookingService {
 	}
 
 	remove(id: string, currentUser: any) {
-		return bookingService.deleteBooking(id, currentUser);
+		return bookingService.deleteBookingByAdmin(id, currentUser);
 	}
 }
 

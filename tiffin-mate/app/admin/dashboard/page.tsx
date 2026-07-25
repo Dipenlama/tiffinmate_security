@@ -82,6 +82,7 @@ async function apiSend(path: string, _token: string, method: string, body?: any)
 }
 
 type TabKey = "overview" | "users" | "bookings" | "items";
+type BookingView = "active" | "accepted" | "cancelled" | "deleted" | "all";
 
 export default function AdminDashboardPage() {
     const [tab, setTab] = useState<TabKey>("overview");
@@ -94,6 +95,8 @@ export default function AdminDashboardPage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [bookingsLoading, setBookingsLoading] = useState(false);
     const [bookingsError, setBookingsError] = useState<string | null>(null);
+    const [bookingView, setBookingView] = useState<BookingView>("active");
+    const [bookingActionId, setBookingActionId] = useState<string | null>(null);
 
     const [items, setItems] = useState<MenuItem[]>([]);
     const [itemsLoading, setItemsLoading] = useState(false);
@@ -110,7 +113,7 @@ export default function AdminDashboardPage() {
 
     const normalizeBookingStatus = (b: Booking) => {
         const raw = (b.status || (b as any).bookingStatus || (b as any).orderStatus || "pending").toString().toLowerCase();
-        const allowed = ["pending", "accepted", "dispatched", "delivered", "cancelled"];
+        const allowed = ["pending", "accepted", "dispatched", "delivered", "cancelled", "deleted"];
         return allowed.includes(raw) ? raw : "pending";
     };
 
@@ -207,21 +210,30 @@ export default function AdminDashboardPage() {
 
     const updateBookingStatus = async (id: string, status: string) => {
         if (!token) return;
+        setBookingActionId(id);
         const res = await apiSend(`/admin/bookings/${id}/status`, token, "PUT", { status });
         if (!res.ok) {
             alert("Failed to update booking");
+            setBookingActionId(null);
             return;
         }
-        loadBookings();
+        await loadBookings();
+        setBookingActionId(null);
     };
 
-    const cancelBooking = async (id: string) => {
+    const deleteBooking = async (id: string) => {
         if (!token) return;
-        const ok = confirm("Cancel this booking?");
+        const ok = confirm("Delete this booking from the active list? It will remain visible in booking history.");
         if (!ok) return;
+        setBookingActionId(id);
         const res = await apiSend(`/admin/bookings/${id}`, token, "DELETE");
-        if (!res.ok) alert("Failed to cancel booking");
-        loadBookings();
+        if (!res.ok) {
+            alert("Failed to delete booking");
+            setBookingActionId(null);
+            return;
+        }
+        await loadBookings();
+        setBookingActionId(null);
     };
 
     const loadItems = async () => {
@@ -348,6 +360,14 @@ export default function AdminDashboardPage() {
 
         return { counts, revenue, recent, cancellationRate, active };
     }, [bookings]);
+
+    const displayedBookings = useMemo(() => {
+        if (bookingView === "all") return bookings;
+        if (bookingView === "active") {
+            return bookings.filter((booking) => !["accepted", "cancelled", "deleted"].includes(normalizeBookingStatus(booking)));
+        }
+        return bookings.filter((booking) => normalizeBookingStatus(booking) === bookingView);
+    }, [bookings, bookingView]);
 
     const bookingTrend = useMemo(() => {
         const today = new Date();
@@ -661,14 +681,51 @@ export default function AdminDashboardPage() {
 
                 {tab === "bookings" && (
                     <section className="mt-4 bg-white rounded-xl border border-neutral-200 shadow-sm">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-                            <h2 className="font-semibold">Bookings</h2>
-                            <button onClick={loadBookings} className="text-sm px-3 py-2 rounded border">Refresh</button>
+                        <div className="flex flex-col gap-4 px-4 py-4 border-b border-neutral-200 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="font-semibold">Booking management</h2>
+                                <p className="mt-1 text-sm text-neutral-500">Review and manage client bookings by status.</p>
+                            </div>
+                            <button onClick={loadBookings} className="text-sm px-3 py-2 rounded-lg border border-neutral-200 hover:bg-neutral-50">Refresh</button>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto px-4 py-3 border-b border-neutral-100">
+                            {([
+                                ["active", "Pending & active"],
+                                ["accepted", "Accepted"],
+                                ["cancelled", "Cancelled"],
+                                ["deleted", "Deleted"],
+                                ["all", "All"],
+                            ] as Array<[BookingView, string]>).map(([key, label]) => {
+                                const count = key === "all"
+                                    ? bookings.length
+                                    : key === "active"
+                                    ? bookings.filter((booking) => !["accepted", "cancelled", "deleted"].includes(normalizeBookingStatus(booking))).length
+                                    : bookings.filter((booking) => normalizeBookingStatus(booking) === key).length;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => setBookingView(key)}
+                                        className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                                            bookingView === key
+                                                ? "bg-emerald-700 text-white"
+                                                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                                        }`}
+                                    >
+                                        {label} <span className="ml-1 opacity-75">{count}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                         {bookingsLoading && <div className="p-4 text-sm text-neutral-600">Loading bookings…</div>}
                         {bookingsError && <div className="p-4 text-sm text-red-600">{bookingsError}</div>}
                         {!bookingsLoading && !bookingsError && (
                             <div className="overflow-x-auto">
+                                {displayedBookings.length === 0 && (
+                                    <div className="px-4 py-10 text-center text-sm text-neutral-500">
+                                        No {bookingView === "all" ? "" : bookingView} bookings found.
+                                    </div>
+                                )}
+                                {displayedBookings.length > 0 && (
                                 <table className="min-w-full text-sm">
                                     <thead className="bg-neutral-100 text-neutral-700">
                                         <tr>
@@ -682,11 +739,10 @@ export default function AdminDashboardPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {bookings.map((b) => {
-                                            const rawStatus = (b.status || (b as any).bookingStatus || (b as any).orderStatus || 'pending').toString().toLowerCase();
-                                            const allowed = ['pending','accepted','dispatched','delivered','cancelled'];
-                                            const status = allowed.includes(rawStatus) ? rawStatus : 'pending';
+                                        {displayedBookings.map((b) => {
+                                            const status = normalizeBookingStatus(b);
                                             const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                                            const isUpdating = bookingActionId === b._id;
                                             return (
                                                 <tr key={b._id} className="border-t border-neutral-100">
                                                     <td className="px-4 py-3 font-medium">{b.packageName || b.package || "—"}</td>
@@ -695,21 +751,31 @@ export default function AdminDashboardPage() {
                                                     <td className="px-4 py-3"><span className="inline-flex px-2 py-1 rounded-full text-xs bg-neutral-100 text-neutral-700">{statusLabel}</span></td>
                                                     <td className="px-4 py-3 text-neutral-700">{b.userId || "—"}</td>
                                                     <td className="px-4 py-3 text-neutral-600">{b.createdAt ? new Date(b.createdAt).toLocaleString() : "—"}</td>
-                                                    <td className="px-4 py-3 text-right flex justify-end gap-2">
-                                                        <select
-                                                            value={status}
-                                                            onChange={(e) => updateBookingStatus(b._id, e.target.value)}
-                                                            className="border rounded px-2 py-1 text-xs"
-                                                        >
-                                                            {['pending','accepted','dispatched','delivered','cancelled'].map((s) => <option key={s} value={s}>{s}</option>)}
-                                                        </select>
-                                                        <button onClick={() => cancelBooking(b._id)} className="text-xs text-red-600 hover:underline">Cancel</button>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex justify-end gap-2">
+                                                            {status === "pending" && (
+                                                                <button disabled={isUpdating} onClick={() => updateBookingStatus(b._id, "accepted")} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">
+                                                                    Accept
+                                                                </button>
+                                                            )}
+                                                            {!["cancelled", "deleted", "delivered"].includes(status) && (
+                                                                <button disabled={isUpdating} onClick={() => updateBookingStatus(b._id, "cancelled")} className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-700 disabled:opacity-50">
+                                                                    Cancel
+                                                                </button>
+                                                            )}
+                                                            {status !== "deleted" && (
+                                                                <button disabled={isUpdating} onClick={() => deleteBooking(b._id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 disabled:opacity-50">
+                                                                    Delete
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
                                         })}
                                     </tbody>
                                 </table>
+                                )}
                             </div>
                         )}
                     </section>

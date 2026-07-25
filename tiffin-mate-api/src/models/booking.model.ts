@@ -34,7 +34,7 @@ const bookingSchema: Schema = new Schema(
     notes: { type: String },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'dispatched', 'delivered', 'cancelled'],
+      enum: ['pending', 'accepted', 'dispatched', 'delivered', 'cancelled', 'deleted'],
       default: 'pending',
     },
     paymentStatus: {
@@ -59,7 +59,7 @@ export interface IBooking extends Document {
   packageName?: string;
   address?: string | null;
   notes?: string;
-  status: 'pending' | 'accepted' | 'dispatched' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'dispatched' | 'delivered' | 'cancelled' | 'deleted';
   paymentStatus: 'pending' | 'processing' | 'paid' | 'failed';
   meta?: Record<string, any>;
 }

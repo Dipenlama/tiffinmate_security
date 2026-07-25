@@ -4,6 +4,8 @@ import { CreateBookingDto, CreateBookingDtoType } from '../dtos/booking.dto';
 import { HttpError } from '../errors/http-error';
 import { z } from 'zod';
 
+const BOOKING_STATUSES = ['pending', 'accepted', 'dispatched', 'delivered', 'cancelled', 'deleted'] as const;
+
 export class BookingService {
 	validateItems(items: any[]) {
 		if (!items || !Array.isArray(items) || items.length === 0) {
@@ -86,9 +88,16 @@ export class BookingService {
 		return bookingRepository.deleteBooking(id);
 	}
 
+	async deleteBookingByAdmin(id: string, currentUser: any) {
+		if (currentUser?.role !== 'admin') throw new HttpError(403, 'Forbidden');
+		const booking = await bookingRepository.findById(id);
+		if (!booking) throw new HttpError(404, 'Booking not found');
+		return bookingRepository.updateStatus(id, 'deleted');
+	}
+
 	async updateStatus(id: string, payload: unknown, currentUser?: any) {
 		const normalizedPayload = typeof payload === 'string' ? { status: payload } : payload;
-		const UpdateStatusDto = z.object({ status: z.string() });
+		const UpdateStatusDto = z.object({ status: z.enum(BOOKING_STATUSES) });
 		const parsed = UpdateStatusDto.safeParse(normalizedPayload);
 		if (!parsed.success) throw new HttpError(400, 'Invalid status');
 		if (currentUser) {

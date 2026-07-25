@@ -17,7 +17,10 @@ type Booking = {
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+  meta?: { address?: string };
 };
+
+type BookingView = "active" | "accepted" | "history";
 
 type PageData = {
   items: Booking[];
@@ -62,10 +65,11 @@ function BookingsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(50);
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [bookingView, setBookingView] = useState<BookingView>("active");
 
   const currentUser = useMemo(() => getUser(), []);
   const userIdParam = searchParams.get("userId");
@@ -128,9 +132,20 @@ function BookingsPageInner() {
   const onRetry = () => {
     setError(null);
     setPage(1);
-    setLimit(10);
+    setLimit(50);
     setLoading(true);
   };
+
+  const groupedBookings = useMemo(() => {
+    const items = data?.items || [];
+    return {
+      active: items.filter((booking) => !["accepted", "cancelled", "deleted"].includes((booking.status || "pending").toLowerCase())),
+      accepted: items.filter((booking) => (booking.status || "").toLowerCase() === "accepted"),
+      history: items.filter((booking) => ["cancelled", "deleted"].includes((booking.status || "").toLowerCase())),
+    };
+  }, [data]);
+
+  const visibleBookings = groupedBookings[bookingView];
 
   return (
     <main className="min-h-screen bg-[#f7f6ef]">
@@ -166,61 +181,81 @@ function BookingsPageInner() {
         )}
 
         {!loading && !error && !forbidden && data && data.items.length > 0 && (
-          <div className="bg-white border border-neutral-200 rounded-lg shadow-sm overflow-hidden">
-            <table className="min-w-full text-sm">
-              <thead className="bg-neutral-100 text-neutral-700">
-                <tr>
-                  <th className="text-left px-4 py-3">Package</th>
-                  <th className="text-left px-4 py-3">Day / Time</th>
-                  <th className="text-left px-4 py-3">Address</th>
-                  <th className="text-left px-4 py-3">Total</th>
-                  <th className="text-left px-4 py-3">Status</th>
-                  <th className="text-left px-4 py-3">Created</th>
-                  <th className="text-right px-4 py-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((bk) => (
-                  <tr key={bk._id} className="border-t border-neutral-100">
-                    <td className="px-4 py-3 font-medium text-neutral-900">{bk.packageName || bk.package || '—'}</td>
-                    <td className="px-4 py-3 text-neutral-700">{bk.day || '—'} {bk.time ? `• ${bk.time}` : ''}</td>
-                    <td className="px-4 py-3 text-neutral-700 max-w-xs whitespace-pre-wrap">{bk.address || (bk as any)?.meta?.address || '—'}</td>
-                    <td className="px-4 py-3 text-neutral-900">₹{Number(bk.total || 0).toFixed(2)}</td>
-                    <td className="px-4 py-3"><span className="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-neutral-100 text-neutral-700">{bk.status || 'pending'}</span></td>
-                    <td className="px-4 py-3 text-neutral-600">{bk.createdAt ? new Date(bk.createdAt).toLocaleString() : '—'}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button className="text-sm text-emerald-600 hover:text-emerald-700">View</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <div className="flex items-center justify-between px-4 py-3 bg-[#f7f6ef] border-t border-neutral-200">
-              <div className="text-sm text-neutral-600">Page {data.page} of {data.totalPages} • {data.total} total</div>
-              <div className="flex items-center gap-2">
+          <section>
+            <div className="mb-5 flex gap-2 overflow-x-auto">
+              {([
+                ["active", "Bookings"],
+                ["accepted", "Accepted"],
+                ["history", "Canceled Booking"],
+              ] as Array<[BookingView, string]>).map(([key, label]) => (
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="px-3 py-2 rounded border text-sm disabled:opacity-50">
-                  Prev
-                </button>
-                <button
-                  onClick={() => setPage((p) => (data.totalPages ? Math.min(data.totalPages, p + 1) : p + 1))}
-                  disabled={data.totalPages ? page >= data.totalPages : false}
-                  className="px-3 py-2 rounded border text-sm disabled:opacity-50">
-                  Next
-                </button>
-                <select
-                  value={limit}
-                  onChange={(e) => { setLimit(Number(e.target.value) || 10); setPage(1); }}
-                  className="border rounded px-2 py-1 text-sm"
+                  key={key}
+                  onClick={() => setBookingView(key)}
+                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition ${
+                    bookingView === key
+                      ? "bg-emerald-700 text-white shadow-sm"
+                      : "border border-neutral-200 bg-white text-neutral-600 hover:border-emerald-300"
+                  }`}
                 >
-                  {[5,10,20,50].map((n) => <option key={n} value={n}>{n}/page</option>)}
-                </select>
-              </div>
+                  {label} <span className="ml-1 opacity-75">{groupedBookings[key].length}</span>
+                </button>
+              ))}
             </div>
-          </div>
+
+            {visibleBookings.length === 0 ? (
+              <div className="rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center text-neutral-500">
+                No bookings in this section.
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {visibleBookings.map((booking) => {
+                  const status = (booking.status || "pending").toLowerCase();
+                  const statusStyle = status === "accepted"
+                    ? "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200"
+                    : status === "deleted"
+                    ? "bg-red-100 text-red-800 ring-1 ring-inset ring-red-200"
+                    : status === "cancelled"
+                    ? "bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-200"
+                    : "bg-orange-100 text-orange-800 ring-1 ring-inset ring-orange-200";
+
+                  return (
+                    <article key={booking._id} className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-semibold text-neutral-900">{booking.packageName || booking.package || "Tiffin booking"}</p>
+                          <p className="mt-1 text-sm text-neutral-500">
+                            {[booking.day, booking.time].filter(Boolean).join(" at ") || "Schedule not available"}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyle}`}>{status}</span>
+                      </div>
+                      <div className="mt-4 border-t border-neutral-100 pt-4 text-sm">
+                        <div className="flex justify-between gap-4">
+                          <span className="text-neutral-500">Total</span>
+                          <span className="font-semibold text-neutral-900">INR {Number(booking.total || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="mt-2 flex justify-between gap-4">
+                          <span className="text-neutral-500">Booked on</span>
+                          <span className="text-right text-neutral-700">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : "Not available"}</span>
+                        </div>
+                        <p className="mt-3 text-neutral-600">{booking.address || booking.meta?.address || "Delivery address not available"}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {data.totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-between">
+                <p className="text-sm text-neutral-500">Page {data.page} of {data.totalPages}</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={page <= 1} className="rounded-lg border bg-white px-3 py-2 text-sm disabled:opacity-50">Previous</button>
+                  <button onClick={() => setPage((value) => Math.min(data.totalPages, value + 1))} disabled={page >= data.totalPages} className="rounded-lg border bg-white px-3 py-2 text-sm disabled:opacity-50">Next</button>
+                </div>
+              </div>
+            )}
+          </section>
         )}
       </div>
     </main>

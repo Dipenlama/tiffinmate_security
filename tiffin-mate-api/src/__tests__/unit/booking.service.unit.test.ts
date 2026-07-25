@@ -113,6 +113,18 @@ describe("BookingService unit", () => {
     expect(result?.status).toBe("cancelled");
   });
 
+  it("deleteBookingByAdmin keeps the booking as deleted history", async () => {
+    mockRepo.findById.mockResolvedValue({ _id: "b1", userId: "owner" });
+    mockRepo.updateStatus.mockResolvedValue({ _id: "b1", status: "deleted" });
+    const result = await service.deleteBookingByAdmin("id", { role: "admin" });
+    expect(mockRepo.updateStatus).toHaveBeenCalledWith("id", "deleted");
+    expect(result?.status).toBe("deleted");
+  });
+
+  it("deleteBookingByAdmin forbids a non-admin", async () => {
+    await expect(service.deleteBookingByAdmin("id", { role: "user" })).rejects.toMatchObject({ statusCode: 403 });
+  });
+
   it("listForUser delegates to repository", async () => {
     mockRepo.findByUser.mockResolvedValue({ items: [], total: 0 });
     const res = await service.listForUser("u1", 2, 5);
@@ -136,6 +148,10 @@ describe("BookingService unit", () => {
 
   it("updateStatus rejects invalid status payload", async () => {
     await expect(service.updateStatus("id", {}, { role: "admin" })).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it("updateStatus rejects an unsupported status", async () => {
+    await expect(service.updateStatus("id", { status: "unknown" }, { role: "admin" })).rejects.toMatchObject({ statusCode: 400 });
   });
 
   it("updateStatus forbids non-admin when currentUser provided", async () => {

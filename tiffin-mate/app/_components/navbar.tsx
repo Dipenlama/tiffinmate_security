@@ -32,6 +32,15 @@ export default function Navbar() {
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password");
 
+  const navClass = (href: string) => {
+    const isActive = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+    return `rounded-full px-3 py-1.5 font-medium transition ${
+      isActive
+        ? "bg-emerald-100 text-emerald-800"
+        : "text-neutral-700 hover:bg-emerald-50 hover:text-emerald-800"
+    }`;
+  };
+
   const logout = async () => {
     try {
       // The session lives in httpOnly cookies now, which frontend JS cannot
@@ -68,11 +77,11 @@ export default function Navbar() {
               Admin dashboard
             </span>
           ) : (
-            <nav aria-label="Main navigation" className="hidden md:flex gap-4 text-neutral-700">
-              <Link href="/" className="hover:text-neutral-900">Home</Link>
-              <Link href="/menu" className="hover:text-neutral-900">Menu</Link>
-              {isLoggedIn && <Link href="/bookings" className="hover:text-neutral-900">Bookings</Link>}
-              <Link href="/about" className="hover:text-neutral-900">About Us</Link>
+            <nav aria-label="Main navigation" className="hidden items-center gap-1 text-sm md:flex">
+              <Link href="/" className={navClass("/")} aria-current={pathname === "/" ? "page" : undefined}>Home</Link>
+              <Link href="/menu" className={navClass("/menu")} aria-current={pathname.startsWith("/menu") ? "page" : undefined}>Menu</Link>
+              {isLoggedIn && <Link href="/bookings" className={navClass("/bookings")} aria-current={pathname.startsWith("/bookings") ? "page" : undefined}>Bookings</Link>}
+              <Link href="/about" className={navClass("/about")} aria-current={pathname.startsWith("/about") ? "page" : undefined}>About Us</Link>
             </nav>
           )}
         </div>

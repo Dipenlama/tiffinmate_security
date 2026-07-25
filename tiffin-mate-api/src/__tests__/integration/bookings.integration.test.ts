@@ -301,6 +301,40 @@ describe("Bookings integration", () => {
 		expect(res.status).toBe(200);
 	});
 
+	it("allows admin to accept, cancel, and soft-delete a booking", async () => {
+		const { token: owner } = await createUserAndToken();
+		const createRes = await createBooking(owner);
+		const bookingId = createRes.body.data._id;
+		const { token: admin } = await createUserAndToken("admin");
+
+		const accepted = await request(app)
+			.put(`/api/admin/bookings/${bookingId}/status`)
+			.set("Authorization", `Bearer ${admin}`)
+			.send({ status: "accepted" });
+		expect(accepted.status).toBe(200);
+		expect(accepted.body.data.status).toBe("accepted");
+
+		const cancelled = await request(app)
+			.put(`/api/admin/bookings/${bookingId}/status`)
+			.set("Authorization", `Bearer ${admin}`)
+			.send({ status: "cancelled" });
+		expect(cancelled.status).toBe(200);
+		expect(cancelled.body.data.status).toBe("cancelled");
+
+		const deleted = await request(app)
+			.delete(`/api/admin/bookings/${bookingId}`)
+			.set("Authorization", `Bearer ${admin}`);
+		expect(deleted.status).toBe(200);
+		expect(deleted.body.data.status).toBe("deleted");
+
+		const clientHistory = await request(app)
+			.get("/api/bookings")
+			.set("Authorization", `Bearer ${owner}`);
+		expect(clientHistory.body.data.items).toEqual(
+			expect.arrayContaining([expect.objectContaining({ _id: bookingId, status: "deleted" })])
+		);
+	});
+
 	it("returns 404 when getting non-existing booking id", async () => {
 		const { token } = await createUserAndToken();
 		const missingId = new mongoose.Types.ObjectId().toString();
