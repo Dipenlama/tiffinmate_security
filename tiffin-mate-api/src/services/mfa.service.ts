@@ -3,13 +3,7 @@ import { authenticator } from "otplib";
 import QRCode from "qrcode";
 import { MFA_ENCRYPTION_KEY } from "../config";
 
-// TOTP (RFC 6238) multi-factor authentication (OWASP ASVS V2.8 "Single or
-// Multi Factor One Time Verifier"). Using an authenticator app (Google
-// Authenticator, Authy, etc.) means the second factor never travels over the
-// network at all - unlike SMS OTPs, it can't be intercepted or SIM-swapped.
-//
-// Allow 1 time-step (30s) of clock drift each side so the code entered a few
-// seconds after it changes (a common UX moment) still verifies.
+
 authenticator.options = { window: 1 };
 
 const ISSUER = "TiffinMate";

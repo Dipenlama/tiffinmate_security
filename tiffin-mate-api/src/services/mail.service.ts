@@ -8,6 +8,7 @@ import {
   SMTP_USER,
 } from '../config';
 
+
 let transporter: nodemailer.Transporter | null = null;
 
 export function isEmailConfigured(): boolean {
