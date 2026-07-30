@@ -20,8 +20,8 @@ let refreshTokenRepository = new RefreshTokenRepository();
 // (OWASP ASVS V2.5.1, A02:2021 Cryptographic Failures).
 const hashResetToken = sha256Hex;
 
-const ACCESS_TOKEN_TTL = '15m';
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const ACCESS_TOKEN_TTL = '15d';
+const REFRESH_TOKEN_TTL_MS = 15 * 24 * 60 * 60 * 1000;
 const MFA_PREAUTH_TOKEN_TTL = '2m';
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const ACCOUNT_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
@@ -135,8 +135,8 @@ export class AuthService{
 
         logAuditEvent({ action: 'auth.login.success', outcome: 'success', actorId: user._id.toString(), actorEmail: user.email, ip });
 
-        // Short-lived access token (15 min) signed as a JWT, plus a long-lived
-        // (7 day) opaque refresh token persisted server-side so it can be
+        // The access and rotating refresh sessions share the requested 15-day
+        // lifetime. The opaque refresh token remains revocable server-side.
         // revoked (JWTs alone cannot be revoked before their natural expiry).
         const token = signAccessToken(user);
         const refreshToken = await issueRefreshToken(user._id.toString());

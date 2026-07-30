@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { packageMenu, vegFixedPackages } from "../data";
+import { clearSessionMarkers } from "../../../lib/session-markers";
 
 export default function ConfirmPage() {
   const router = useRouter();
@@ -89,6 +90,12 @@ export default function ConfirmPage() {
         const createRes: any = await api.createBooking(payload, draft.draftId || undefined);
         console.log('createBooking response', createRes);
         if (!createRes || !createRes.ok) {
+          if (createRes?.status === 401) {
+            clearSessionMarkers();
+            alert('Your session has expired. Please log in again.');
+            router.replace('/login');
+            return;
+          }
           if (createRes?.status === 409) {
             // booking exists, use returned booking
             const existing = createRes.data;
@@ -99,6 +106,11 @@ export default function ConfirmPage() {
             }
             // proceed to create payment session for existing booking
             const payJson: any = await api.createPaymentSession(String(bookingId)).catch(() => ({}));
+            if (!payJson?.ok) {
+              const message = payJson?.data?.error?.message || payJson?.data?.message || payJson?.data?.error || 'Unable to start payment';
+              alert(`Payment failed: ${message}`);
+              return;
+            }
             if (payJson?.data?.mock && payJson.data.redirect) { window.location.href = payJson.data.redirect; return; }
             if (payJson?.data?.url) { window.location.href = payJson.data.url; return; }
             alert('Payment creation returned no URL. Response:\n' + JSON.stringify(payJson, null, 2));
@@ -120,6 +132,11 @@ export default function ConfirmPage() {
         }
 
         const payJson = await api.createPaymentSession(String(bookingId)).catch(() => ({}));
+        if (!payJson?.ok) {
+          const message = payJson?.data?.error?.message || payJson?.data?.message || payJson?.data?.error || 'Unable to start payment';
+          alert(`Payment failed: ${message}`);
+          return;
+        }
         if (payJson?.data?.mock && payJson.data.redirect) {
           window.location.href = payJson.data.redirect;
           return;

@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { API_BASE } from "../../lib/api";
+import { API_BASE, cancelBooking } from "../../lib/api";
 import { hasSessionMarker } from "../../lib/session-markers";
 
 type Booking = {
@@ -64,12 +64,15 @@ export default function BookingsPage() {
 function BookingsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const paymentSucceeded = searchParams.get("payment") === "success";
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [bookingView, setBookingView] = useState<BookingView>("active");
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const currentUser = useMemo(() => getUser(), []);
   const userIdParam = searchParams.get("userId");
@@ -129,6 +132,13 @@ function BookingsPageInner() {
     return () => controller.abort();
   }, [page, limit, userId, router, forbidden]);
 
+  useEffect(() => {
+    if (!paymentSucceeded) return;
+    try {
+      sessionStorage.removeItem("bookingDraft");
+    } catch {}
+  }, [paymentSucceeded]);
+
   const onRetry = () => {
     setError(null);
     setPage(1);
@@ -147,6 +157,29 @@ function BookingsPageInner() {
 
   const visibleBookings = groupedBookings[bookingView];
 
+  const handleCancel = async (booking: Booking) => {
+    if (!window.confirm("Cancel this booking?")) return;
+    setCancellingId(booking._id);
+    setActionError(null);
+    try {
+      const result = await cancelBooking(booking._id);
+      if (!result.ok) {
+        const message = result.data?.error?.message || result.data?.message || "Unable to cancel booking";
+        setActionError(message);
+        return;
+      }
+      setData((current) => current ? {
+        ...current,
+        items: current.items.map((item) => item._id === booking._id ? { ...item, status: "cancelled" } : item),
+      } : current);
+      setBookingView("history");
+    } catch {
+      setActionError("Unable to cancel booking. Please try again.");
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#f7f6ef]">
       <div className="max-w-6xl mx-auto px-6 py-10">
@@ -157,6 +190,12 @@ function BookingsPageInner() {
           </div>
           <div className="text-sm text-neutral-500">User: {userId || 'unknown'}</div>
         </header>
+
+        {paymentSucceeded && (
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status">
+            Payment completed. Your booking has been confirmed.
+          </div>
+        )}
 
         {forbidden && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6" role="alert">
@@ -202,6 +241,12 @@ function BookingsPageInner() {
               ))}
             </div>
 
+            {actionError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                {actionError}
+              </div>
+            )}
+
             {visibleBookings.length === 0 ? (
               <div className="rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center text-neutral-500">
                 No bookings in this section.
@@ -210,6 +255,7 @@ function BookingsPageInner() {
               <div className="grid gap-4 md:grid-cols-2">
                 {visibleBookings.map((booking) => {
                   const status = (booking.status || "pending").toLowerCase();
+                  const canCancel = ["pending", "accepted", "dispatched"].includes(status);
                   const statusStyle = status === "accepted"
                     ? "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200"
                     : status === "deleted"
@@ -239,6 +285,18 @@ function BookingsPageInner() {
                           <span className="text-right text-neutral-700">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : "Not available"}</span>
                         </div>
                         <p className="mt-3 text-neutral-600">{booking.address || booking.meta?.address || "Delivery address not available"}</p>
+                        {canCancel && (
+                          <div className="mt-4 border-t border-neutral-100 pt-4 text-right">
+                            <button
+                              type="button"
+                              disabled={cancellingId === booking._id}
+                              onClick={() => handleCancel(booking)}
+                              className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {cancellingId === booking._id ? "Cancelling..." : "Cancel booking"}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </article>
                   );

@@ -21,6 +21,15 @@ class PaymentController {
       const booking = await bookingRepository.findById(bookingId);
       if (!booking) return res.status(404).json({ success: false, error: { message: 'Booking not found' } });
 
+      const configuredOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000')
+        .split(',')
+        .map((origin) => origin.trim().replace(/\/$/, ''))
+        .filter(Boolean);
+      const requestOrigin = String(req.headers.origin || '').replace(/\/$/, '');
+      const frontendUrl = configuredOrigins.includes(requestOrigin)
+        ? requestOrigin
+        : (process.env.FRONTEND_URL || configuredOrigins[0] || 'http://localhost:3000').replace(/\/$/, '');
+
       // create a payment record (created)
       const payment = await paymentRepository.createPayment({
         userId: booking.userId || null,
@@ -42,7 +51,7 @@ class PaymentController {
         // validators by default) while leaving paymentStatus stuck at
         // 'pending' forever. Found via the payment-webhook regression test.
         await bookingService.markPaymentPaid(bookingId);
-        return res.json({ success: true, data: { mock: true, redirect: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/packages/confirm/success?bookingId=${bookingId}` } });
+        return res.json({ success: true, data: { mock: true, redirect: `${frontendUrl}/bookings?payment=success&bookingId=${bookingId}` } });
       }
 
       const line_items = (booking.items || []).map((it: any) => ({
@@ -58,8 +67,8 @@ class PaymentController {
         payment_method_types: ['card'],
         line_items,
         mode: 'payment',
-        success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/packages/confirm/success?bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/packages/confirm?bookingId=${bookingId}`,
+        success_url: `${frontendUrl}/bookings?payment=success&bookingId=${bookingId}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${frontendUrl}/packages/confirm?bookingId=${bookingId}`,
         metadata: { bookingId },
       });
 

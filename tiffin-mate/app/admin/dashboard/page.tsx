@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { getCsrfToken } from "../../../lib/api";
+import { API_BASE, getCsrfToken } from "../../../lib/api";
 import { hasSessionMarker } from "../../../lib/session-markers";
 import { PASSWORD_REQUIREMENTS_MESSAGE, validatePassword } from "../../../lib/password-validation";
 
@@ -47,7 +47,6 @@ type MenuItem = {
     available?: boolean;
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5050/api").replace(/\/$/, "");
 const API_HOST = API_BASE.replace(/\/api$/, "");
 const MAX_IMAGE_BYTES = 700 * 1024; // keep below backend 1MB once base64 encoded
 

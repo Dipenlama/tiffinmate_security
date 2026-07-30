@@ -5,7 +5,28 @@ const envBase = (process.env.NEXT_PUBLIC_API_BASE || '').trim();
 const derivedBase = envOrigin && envPrefix
   ? `${envOrigin.replace(/\/$/, '')}${envPrefix.startsWith('/') ? envPrefix : `/${envPrefix}`}`
   : '';
-export const API_BASE = envBase || derivedBase || 'http://localhost:5050/api';
+const configuredBase = envBase || derivedBase || 'http://localhost:5050/api';
+
+// In development the same app is opened as localhost on the host machine and
+// as a VMware adapter IP in the guest. Keep the API on that same hostname so
+// SameSite=Strict authentication cookies are sent in both environments.
+function resolveApiBase(base: string) {
+  if (typeof window === 'undefined') return base;
+  try {
+    const apiUrl = new URL(base);
+    const frontendHost = window.location.hostname;
+    const localHost = /^(localhost|127\.0\.0\.1|\[::1\])$/;
+    const privateIp = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
+    const isLocalFrontend = localHost.test(frontendHost) || privateIp.test(frontendHost);
+    const isLocalApi = localHost.test(apiUrl.hostname) || privateIp.test(apiUrl.hostname);
+    if (isLocalFrontend && isLocalApi) apiUrl.hostname = frontendHost;
+    return apiUrl.toString().replace(/\/$/, '');
+  } catch {
+    return base;
+  }
+}
+
+export const API_BASE = resolveApiBase(configuredBase);
 
 async function handleResp(resp: Response) {
   if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).message || resp.statusText);
@@ -250,7 +271,7 @@ export async function createBooking(payload: any, idempotencyKey?: string) {
       body: JSON.stringify(payload),
     });
     const json = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, data: json } as const;
+    return { ok: res.ok, status: res.status, data: json?.data ?? json } as const;
   };
 
   const attempts = [
@@ -277,16 +298,26 @@ export async function createBooking(payload: any, idempotencyKey?: string) {
   };
 }
 
+export async function cancelBooking(bookingId: string) {
+  const res = await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}`, {
+    method: 'DELETE',
+    headers: await withCsrfHeader(),
+    credentials: 'include',
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data: json?.data ?? json };
+}
+
 export async function createPaymentSession(bookingId: string) {
   try {
-    const res = await fetch(`${API_BASE}/payments/create-checkout-session`, {
+    const res = await fetch(`${API_BASE}/payments`, {
       method: 'POST',
       headers: await withCsrfHeader({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({ bookingId }),
       credentials: 'include',
     });
     const json = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, data: json };
+    return { ok: res.ok, status: res.status, data: json?.data ?? json };
   } catch (e) {
     return { ok: false, status: 0, data: { error: String(e) } };
   }

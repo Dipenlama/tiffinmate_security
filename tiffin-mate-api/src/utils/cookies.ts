@@ -15,6 +15,7 @@ import { IS_PRODUCTION } from "../config";
 export const ACCESS_TOKEN_COOKIE = "access_token";
 export const REFRESH_TOKEN_COOKIE = "refresh_token";
 export const ROLE_COOKIE = "role";
+const SESSION_MAX_AGE_MS = 15 * 24 * 60 * 60 * 1000;
 
 export function setAuthCookies(
     res: Response,
@@ -25,6 +26,7 @@ export function setAuthCookies(
         secure: IS_PRODUCTION,
         sameSite: "strict",
         path: "/",
+        maxAge: SESSION_MAX_AGE_MS,
     });
 
     res.cookie(REFRESH_TOKEN_COOKIE, params.refreshToken, {
@@ -34,6 +36,7 @@ export function setAuthCookies(
         // Scoped to the auth routes only, so this longer-lived, more powerful
         // token is never sent to (or leaked by) unrelated API endpoints.
         path: "/api/auth",
+        maxAge: SESSION_MAX_AGE_MS,
     });
 
     // Not secret - only used by Next.js middleware / the frontend to decide
@@ -44,6 +47,7 @@ export function setAuthCookies(
         secure: IS_PRODUCTION,
         sameSite: "lax",
         path: "/",
+        maxAge: SESSION_MAX_AGE_MS,
     });
 }
 

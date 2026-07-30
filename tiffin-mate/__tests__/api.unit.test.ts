@@ -186,6 +186,22 @@ describe('createBooking helper', () => {
     expect(res.ok).toBe(true);
   });
 
+  test('createBooking unwraps the API data envelope', async () => {
+    globalAny.fetch = jest
+      .fn()
+      .mockImplementationOnce(async () => {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      })
+      .mockImplementationOnce(async () => {
+        return new Response(JSON.stringify({ success: true, data: { _id: 'booking-1' } }), { status: 201, headers: { 'content-type': 'application/json' } }) as any;
+      });
+
+    const { createBooking } = await import('../lib/api');
+    const result = await createBooking({ foo: 'bar' });
+
+    expect(result.data).toEqual({ _id: 'booking-1' });
+  });
+
   test('createBooking skips endpoints that return 404', async () => {
     const calls: string[] = [];
     globalAny.fetch = jest
@@ -243,5 +259,60 @@ describe('createBooking helper', () => {
       lastHeaders?.['Idempotency-Key'] ||
       lastHeaders?.['idempotency-key'];
     expect(headerValue).toBe('key-123');
+  });
+});
+
+describe('createPaymentSession helper', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  test('posts to the registered /payments endpoint', async () => {
+    const calls: string[] = [];
+    globalAny.fetch = jest.fn(async (url: string) => {
+      calls.push(url);
+      if (url.endsWith('/auth/csrf-token')) {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      }
+      return new Response(JSON.stringify({ success: true, data: { url: 'https://checkout.example' } }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+    });
+
+    const { API_BASE, createPaymentSession } = await import('../lib/api');
+    const result = await createPaymentSession('booking-1');
+
+    expect(calls).toEqual([
+      `${API_BASE}/auth/csrf-token`,
+      `${API_BASE}/payments`,
+    ]);
+    expect(result.ok).toBe(true);
+    expect(result.data).toEqual({ url: 'https://checkout.example' });
+  });
+});
+
+describe('cancelBooking helper', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  test('deletes the owned booking with a CSRF token', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    globalAny.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      if (url.endsWith('/auth/csrf-token')) {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      }
+      return new Response(JSON.stringify({ success: true, data: { _id: 'booking/1', status: 'cancelled' } }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+    });
+
+    const { API_BASE, cancelBooking } = await import('../lib/api');
+    const result = await cancelBooking('booking/1');
+
+    expect(calls[1].url).toBe(`${API_BASE}/bookings/booking%2F1`);
+    expect(calls[1].init).toEqual(expect.objectContaining({
+      method: 'DELETE',
+      credentials: 'include',
+      headers: expect.objectContaining({ 'X-CSRF-Token': 'test-csrf-token' }),
+    }));
+    expect(result.data.status).toBe('cancelled');
   });
 });

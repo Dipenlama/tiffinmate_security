@@ -5,14 +5,13 @@
 // actual API call is authorized against server-side regardless of these
 // markers. See the comment in middleware.ts for why this split exists.
 const SESSION_VERSION = '2';
+const SESSION_MAX_AGE_SECONDS = 15 * 24 * 60 * 60;
 
 export function setSessionMarkers(role: string) {
   if (typeof document === 'undefined') return;
-  // No Max-Age/Expires: these are browser-session cookies and disappear when
-  // the browser session ends instead of remembering an account for seven days.
-  document.cookie = 'logged_in=1; path=/; SameSite=Lax';
-  document.cookie = `role=${role}; path=/; SameSite=Lax`;
-  document.cookie = `session_version=${SESSION_VERSION}; path=/; SameSite=Lax`;
+  document.cookie = `logged_in=1; path=/; max-age=${SESSION_MAX_AGE_SECONDS}; SameSite=Lax`;
+  document.cookie = `role=${role}; path=/; max-age=${SESSION_MAX_AGE_SECONDS}; SameSite=Lax`;
+  document.cookie = `session_version=${SESSION_VERSION}; path=/; max-age=${SESSION_MAX_AGE_SECONDS}; SameSite=Lax`;
   window.dispatchEvent(new Event('auth-state-changed'));
 }
 
