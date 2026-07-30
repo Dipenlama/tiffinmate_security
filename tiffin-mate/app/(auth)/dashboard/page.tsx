@@ -182,10 +182,10 @@ const DashboardPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { key: 'Veg', title: 'Veg', img: food5.src, price: '₹99', features: ['Fresh veggies', 'Protein rich'] },
-              { key: 'Non-Veg', title: 'Non-Veg', img: food7.src, price: '₹129', features: ['Daily non-veg', 'High protein'] },
-              { key: 'Mixed', title: 'Mixed', img: food3.src, price: '₹149', features: ['Balanced meals', 'Variety'] },
-              { key: 'Premium', title: 'Premium', img: thukpa.src, price: '₹199', features: ['Chef curated', 'Gourmet sides'] },
+              { key: 'Veg', title: 'Veg', img: food5.src, price: 'NPR 99', features: ['Fresh veggies', 'Protein rich'] },
+              { key: 'Non-Veg', title: 'Non-Veg', img: food7.src, price: 'NPR 129', features: ['Daily non-veg', 'High protein'] },
+              { key: 'Mixed', title: 'Mixed', img: food3.src, price: 'NPR 149', features: ['Balanced meals', 'Variety'] },
+              { key: 'Premium', title: 'Premium', img: thukpa.src, price: 'NPR 199', features: ['Chef curated', 'Gourmet sides'] },
             ].map((p) => (
               <Link key={p.key} href={`/packages/${p.key.toLowerCase().replace(/\s+/g, '-')}`} className="block">
                 <div className="relative rounded-2xl overflow-hidden bg-white border border-neutral-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all h-full">
@@ -272,7 +272,7 @@ const DashboardPage = () => {
                           <p className="text-sm text-neutral-600 line-clamp-2">{it.description || 'Freshly prepared by our kitchen.'}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-xl font-bold text-rose-600">{price > 0 ? `₹${price.toFixed(2)}` : '₹—'}</div>
+                          <div className="text-xl font-bold text-rose-600">{price > 0 ? `NPR ${price.toFixed(2)}` : 'NPR —'}</div>
                           <div className={`text-[11px] font-semibold mt-1 px-2 py-1 rounded-full border ${unavailable ? 'text-red-600 bg-red-50 border-red-100' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
                             {unavailable ? 'Unavailable' : 'Available'}
                           </div>

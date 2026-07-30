@@ -117,7 +117,7 @@ export default function MenuItemPage() {
           <div className="flex-1">
             <h1 className="text-2xl font-semibold text-neutral-900">{item.name}</h1>
             <p className="text-sm text-neutral-800 mt-2">{item.description || "Freshly prepared by our kitchen."}</p>
-            <div className="mt-4 text-lg font-bold text-neutral-900">₹{Number(item.price ?? 99).toFixed(2)}</div>
+            <div className="mt-4 text-lg font-bold text-neutral-900">NPR {Number(item.price ?? 99).toFixed(2)}</div>
 
             <div className="mt-6">
               <div className="flex gap-3 flex-wrap">
@@ -167,7 +167,7 @@ export default function MenuItemPage() {
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowBooking(false)} />
           <div className="relative w-full md:w-2/3 lg:w-1/2 bg-white rounded-t-lg md:rounded-lg p-6 shadow-xl text-neutral-900">
             <h2 className="text-lg font-semibold text-neutral-900">Confirm Booking</h2>
-            <p className="text-sm text-neutral-600 mt-2">{item.name} — ₹{Number(item.price||0).toFixed(2)}</p>
+            <p className="text-sm text-neutral-600 mt-2">{item.name} — NPR {Number(item.price||0).toFixed(2)}</p>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>
@@ -200,7 +200,7 @@ export default function MenuItemPage() {
 
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-neutral-700">Total</div>
-              <div className="text-lg font-bold text-rose-600">₹{((Number(item.price||0)||0) * qty).toFixed(2)}</div>
+              <div className="text-lg font-bold text-rose-600">NPR {((Number(item.price||0)||0) * qty).toFixed(2)}</div>
             </div>
 
             <div className="mt-6 flex gap-3 justify-end">

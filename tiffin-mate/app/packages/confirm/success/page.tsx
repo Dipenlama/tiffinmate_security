@@ -83,7 +83,7 @@ export default function SuccessPage() {
                         {it.name || it.title || "Item"}{it.qty ? ` × ${it.qty}` : ""}
                       </span>
                       <span className="text-neutral-700">
-                        {typeof it.subtotal === "number" ? `₹${it.subtotal}` : it.price ? `₹${it.price}` : ""}
+                        {typeof it.subtotal === "number" ? `NPR ${it.subtotal}` : it.price ? `NPR ${it.price}` : ""}
                       </span>
                     </li>
                   ))}
@@ -94,7 +94,7 @@ export default function SuccessPage() {
             {typeof total === "number" && (
               <div className="flex items-center justify-between text-base font-semibold">
                 <span>Total</span>
-                <span>₹{total}</span>
+                <span>NPR {total}</span>
               </div>
             )}
           </div>

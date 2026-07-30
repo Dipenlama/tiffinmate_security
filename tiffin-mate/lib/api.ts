@@ -323,6 +323,17 @@ export async function createPaymentSession(bookingId: string) {
   }
 }
 
+export async function confirmPaymentSession(bookingId: string, sessionId?: string) {
+  const res = await fetch(`${API_BASE}/payments/confirm`, {
+    method: 'POST',
+    headers: await withCsrfHeader({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ bookingId, ...(sessionId ? { sessionId } : {}) }),
+    credentials: 'include',
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data: json?.data ?? json };
+}
+
 export async function fetchOrders() {
   const res = await fetch(`${API_BASE}/orders`, { credentials: 'include' });
   return handleResp(res);

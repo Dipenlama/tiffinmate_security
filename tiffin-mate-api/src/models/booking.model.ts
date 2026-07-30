@@ -39,7 +39,7 @@ const bookingSchema: Schema = new Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'processing', 'paid', 'failed'],
+      enum: ['pending', 'processing', 'paid', 'failed', 'cod'],
       default: 'pending',
     },
     meta: { type: Schema.Types.Mixed },
@@ -60,7 +60,7 @@ export interface IBooking extends Document {
   address?: string | null;
   notes?: string;
   status: 'pending' | 'accepted' | 'dispatched' | 'delivered' | 'cancelled' | 'deleted';
-  paymentStatus: 'pending' | 'processing' | 'paid' | 'failed';
+  paymentStatus: 'pending' | 'processing' | 'paid' | 'failed' | 'cod';
   meta?: Record<string, any>;
 }
 

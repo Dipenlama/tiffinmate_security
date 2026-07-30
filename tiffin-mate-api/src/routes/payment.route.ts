@@ -4,6 +4,8 @@ import { authorizedMiddelWare } from '../middlewares/authorized.middleware';
 
 const router = Router();
 
+router.post('/confirm', authorizedMiddelWare, (req, res) => paymentController.confirmCheckoutSession(req, res));
+
 // create checkout session (authenticated)
 router.post('/', authorizedMiddelWare, (req, res) => paymentController.createCheckoutSession(req, res));
 

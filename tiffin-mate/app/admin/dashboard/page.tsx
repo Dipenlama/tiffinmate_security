@@ -96,6 +96,14 @@ export default function AdminDashboardPage() {
     const [bookingsError, setBookingsError] = useState<string | null>(null);
     const [bookingView, setBookingView] = useState<BookingView>("active");
     const [bookingActionId, setBookingActionId] = useState<string | null>(null);
+    const [selectedBookingIdsByView, setSelectedBookingIdsByView] = useState<Record<BookingView, string[]>>({
+        active: [],
+        accepted: [],
+        cancelled: [],
+        deleted: [],
+        all: [],
+    });
+    const [bulkDeletingBookings, setBulkDeletingBookings] = useState(false);
 
     const [items, setItems] = useState<MenuItem[]>([]);
     const [itemsLoading, setItemsLoading] = useState(false);
@@ -116,7 +124,7 @@ export default function AdminDashboardPage() {
         return allowed.includes(raw) ? raw : "pending";
     };
 
-    const formatINR = (value: number) => `₹${Math.round(value).toLocaleString("en-IN")}`;
+    const formatNPR = (value: number) => `NPR ${Math.round(value).toLocaleString("en-NP")}`;
 
     useEffect(() => {
         setToken(getToken());
@@ -233,6 +241,31 @@ export default function AdminDashboardPage() {
         }
         await loadBookings();
         setBookingActionId(null);
+    };
+
+    const deleteSelectedBookings = async () => {
+        if (!token) return;
+        const selectedIds = selectedBookingIds.filter((id) => selectableBookingIds.includes(id));
+        if (selectedIds.length === 0) return;
+        const ok = confirm(`Delete ${selectedIds.length} selected booking${selectedIds.length === 1 ? "" : "s"} from this section? They will remain visible in Deleted history.`);
+        if (!ok) return;
+
+        setBulkDeletingBookings(true);
+        try {
+            const results = await Promise.all(
+                selectedIds.map((id) => apiSend(`/admin/bookings/${id}`, token, "DELETE"))
+            );
+            const failedCount = results.filter((result) => !result.ok).length;
+            setSelectedBookingIdsByView((current) => ({ ...current, [bookingView]: [] }));
+            await loadBookings();
+            if (failedCount > 0) {
+                alert(`${failedCount} booking${failedCount === 1 ? "" : "s"} could not be deleted.`);
+            }
+        } catch {
+            alert("Selected bookings could not be deleted. Please try again.");
+        } finally {
+            setBulkDeletingBookings(false);
+        }
     };
 
     const loadItems = async () => {
@@ -368,6 +401,48 @@ export default function AdminDashboardPage() {
         return bookings.filter((booking) => normalizeBookingStatus(booking) === bookingView);
     }, [bookings, bookingView]);
 
+    const selectableBookingIds = useMemo(
+        () => displayedBookings
+            .filter((booking) => normalizeBookingStatus(booking) !== "deleted")
+            .map((booking) => booking._id),
+        [displayedBookings]
+    );
+
+    const selectedBookingIds = selectedBookingIdsByView[bookingView];
+
+    const allDisplayedBookingsSelected =
+        selectableBookingIds.length > 0 &&
+        selectableBookingIds.every((id) => selectedBookingIds.includes(id));
+
+    const toggleBookingSelection = (id: string) => {
+        if (!selectableBookingIds.includes(id)) return;
+        setSelectedBookingIdsByView((selections) => {
+            const current = selections[bookingView];
+            return {
+                ...selections,
+                [bookingView]: current.includes(id)
+                    ? current.filter((selectedId) => selectedId !== id)
+                    : [...current, id],
+            };
+        });
+    };
+
+    const toggleAllDisplayedBookings = () => {
+        setSelectedBookingIdsByView((selections) => {
+            const current = selections[bookingView];
+            if (allDisplayedBookingsSelected) {
+                return {
+                    ...selections,
+                    [bookingView]: current.filter((id) => !selectableBookingIds.includes(id)),
+                };
+            }
+            return {
+                ...selections,
+                [bookingView]: Array.from(new Set([...current, ...selectableBookingIds])),
+            };
+        });
+    };
+
     const bookingTrend = useMemo(() => {
         const today = new Date();
         const days = Array.from({ length: 10 }, (_, i) => {
@@ -479,7 +554,7 @@ export default function AdminDashboardPage() {
                                 <div className="flex flex-wrap items-center gap-3 px-4 pb-4 text-sm">
                                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white font-semibold shadow-sm">
                                         <span>Total Revenue</span>
-                                        <span className="text-lg">{formatINR(bookingInsights.revenue)}</span>
+                                        <span className="text-lg">{formatNPR(bookingInsights.revenue)}</span>
                                     </div>
                                     <span className="text-neutral-600">Tracking based on loaded bookings</span>
                                 </div>
@@ -504,7 +579,7 @@ export default function AdminDashboardPage() {
                                                             <p className="text-xs text-neutral-500">{b.day || "—"}{b.time ? ` • ${b.time}` : ""}</p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-sm font-semibold text-neutral-900">{formatINR(Number(b.total || 0))}</p>
+                                                            <p className="text-sm font-semibold text-neutral-900">{formatNPR(Number(b.total || 0))}</p>
                                                             <p className="text-xs text-neutral-500">{b.createdAt ? new Date(b.createdAt).toLocaleDateString() : ""}</p>
                                                         </div>
                                                     </div>
@@ -685,7 +760,16 @@ export default function AdminDashboardPage() {
                                 <h2 className="font-semibold">Booking management</h2>
                                 <p className="mt-1 text-sm text-neutral-500">Review and manage client bookings by status.</p>
                             </div>
-                            <button onClick={loadBookings} className="text-sm px-3 py-2 rounded-lg border border-neutral-200 hover:bg-neutral-50">Refresh</button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={deleteSelectedBookings}
+                                    disabled={selectedBookingIds.length === 0 || bulkDeletingBookings}
+                                    className="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                >
+                                    {bulkDeletingBookings ? "Deleting..." : `Delete selected${selectedBookingIds.length ? ` (${selectedBookingIds.length})` : ""}`}
+                                </button>
+                                <button onClick={loadBookings} disabled={bulkDeletingBookings} className="text-sm px-3 py-2 rounded-lg border border-neutral-200 hover:bg-neutral-50 disabled:opacity-50">Refresh</button>
+                            </div>
                         </div>
                         <div className="flex gap-2 overflow-x-auto px-4 py-3 border-b border-neutral-100">
                             {([
@@ -703,7 +787,9 @@ export default function AdminDashboardPage() {
                                 return (
                                     <button
                                         key={key}
-                                        onClick={() => setBookingView(key)}
+                                        onClick={() => {
+                                            setBookingView(key);
+                                        }}
                                         className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${
                                             bookingView === key
                                                 ? "bg-emerald-700 text-white"
@@ -728,6 +814,16 @@ export default function AdminDashboardPage() {
                                 <table className="min-w-full text-sm">
                                     <thead className="bg-neutral-100 text-neutral-700">
                                         <tr>
+                                            <th className="w-12 px-4 py-3 text-left">
+                                                <input
+                                                    type="checkbox"
+                                                    aria-label="Select all visible bookings"
+                                                    checked={allDisplayedBookingsSelected}
+                                                    disabled={selectableBookingIds.length === 0 || bulkDeletingBookings}
+                                                    onChange={toggleAllDisplayedBookings}
+                                                    className="h-4 w-4 rounded border-neutral-300 accent-emerald-700"
+                                                />
+                                            </th>
                                             <th className="text-left px-4 py-3">Package</th>
                                             <th className="text-left px-4 py-3">Day / Time</th>
                                             <th className="text-left px-4 py-3">Total</th>
@@ -742,11 +838,23 @@ export default function AdminDashboardPage() {
                                             const status = normalizeBookingStatus(b);
                                             const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
                                             const isUpdating = bookingActionId === b._id;
+                                            const isSelected = selectedBookingIds.includes(b._id);
+                                            const canSelect = status !== "deleted";
                                             return (
-                                                <tr key={b._id} className="border-t border-neutral-100">
+                                                <tr key={b._id} className={`border-t border-neutral-100 ${isSelected ? "bg-emerald-50/60" : ""}`}>
+                                                    <td className="px-4 py-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            aria-label={`Select booking ${b.packageName || b.package || b._id}`}
+                                                            checked={isSelected}
+                                                            disabled={!canSelect || bulkDeletingBookings}
+                                                            onChange={() => toggleBookingSelection(b._id)}
+                                                            className="h-4 w-4 rounded border-neutral-300 accent-emerald-700"
+                                                        />
+                                                    </td>
                                                     <td className="px-4 py-3 font-medium">{b.packageName || b.package || "—"}</td>
                                                     <td className="px-4 py-3 text-neutral-700">{b.day || "—"} {b.time ? `• ${b.time}` : ""}</td>
-                                                    <td className="px-4 py-3 text-neutral-900">₹{Number(b.total || 0).toFixed(2)}</td>
+                                                    <td className="px-4 py-3 text-neutral-900">NPR {Number(b.total || 0).toFixed(2)}</td>
                                                     <td className="px-4 py-3"><span className="inline-flex px-2 py-1 rounded-full text-xs bg-neutral-100 text-neutral-700">{statusLabel}</span></td>
                                                     <td className="px-4 py-3 text-neutral-700">{b.userId || "—"}</td>
                                                     <td className="px-4 py-3 text-neutral-600">{b.createdAt ? new Date(b.createdAt).toLocaleString() : "—"}</td>
@@ -817,7 +925,7 @@ export default function AdminDashboardPage() {
                                                     </td>
                                                     <td className="px-4 py-3 font-medium">{it.name || it.title || it.id}</td>
                                                     <td className="px-4 py-3 text-neutral-700">{it.category || "—"}</td>
-                                                    <td className="px-4 py-3 text-neutral-900">₹{Number(it.price || 0).toFixed(2)}</td>
+                                                    <td className="px-4 py-3 text-neutral-900">NPR {Number(it.price || 0).toFixed(2)}</td>
                                                     <td className="px-4 py-3 text-neutral-700">{it.available === false ? "No" : "Yes"}</td>
                                                     <td className="px-4 py-3 text-right flex justify-end gap-2">
                                                         <button onClick={() => editItem(it)} className="text-sm text-emerald-600 hover:underline">Edit</button>

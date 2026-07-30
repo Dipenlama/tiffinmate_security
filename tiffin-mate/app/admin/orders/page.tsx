@@ -56,7 +56,7 @@ export default function AdminOrdersPage() {
             <li key={order.id} className="border rounded p-4 flex items-center justify-between">
               <div>
                 <div className="font-medium">Order {order.id}</div>
-                <div className="text-sm text-neutral-600">{order.customerName || '—'} • ₹{order.total || '0'} • {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}</div>
+                <div className="text-sm text-neutral-600">{order.customerName || '—'} • NPR {order.total || '0'} • {order.createdAt ? new Date(order.createdAt).toLocaleString() : ''}</div>
               </div>
               <div className="flex items-center gap-2">
                 <div className={`px-3 py-1 rounded text-sm ${order.status==='accepted' ? 'bg-emerald-600 text-white' : 'bg-neutral-100 text-neutral-800'}`}>{order.status}</div>

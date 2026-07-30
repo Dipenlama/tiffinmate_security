@@ -33,7 +33,7 @@ describe("Stripe payment webhook", () => {
 		const payment = await PaymentModel.create({
 			bookingId: booking._id,
 			amount: 10,
-			currency: "INR",
+			currency: "NPR",
 			status: "processing",
 			provider: "stripe",
 			providerSessionId: "cs_test_123",

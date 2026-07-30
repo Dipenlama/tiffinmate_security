@@ -9,6 +9,7 @@ export default function ConfirmPage() {
   const router = useRouter();
   const [booking, setBooking] = useState<any>(null);
   const [processing, setProcessing] = useState(false);
+  const [paymentChoice, setPaymentChoice] = useState<"online" | "cod" | null>(null);
   const [address, setAddress] = useState('');
 
   useEffect(() => {
@@ -45,8 +46,9 @@ export default function ConfirmPage() {
     router.push('/dashboard');
   };
 
-  const makePayment = async () => {
+  const makePayment = async (paymentMethod: "online" | "cod") => {
     setProcessing(true);
+    setPaymentChoice(paymentMethod);
     try {
       const raw = sessionStorage.getItem('bookingDraft');
       if (!raw) return alert('No booking draft found');
@@ -69,6 +71,7 @@ export default function ConfirmPage() {
           ...draft,
           package: pickedPackage,
           packageName,
+          paymentMethod,
           frequency: draft.frequency || 'once',
           day: primaryDay,
           days: daysArray,
@@ -104,6 +107,11 @@ export default function ConfirmPage() {
               alert('Server returned 409 but no booking id. Response:\n' + JSON.stringify(createRes, null, 2));
               return;
             }
+            if (paymentMethod === "cod") {
+              try { sessionStorage.removeItem('bookingDraft'); } catch {}
+              router.push('/bookings?payment=cod');
+              return;
+            }
             // proceed to create payment session for existing booking
             const payJson: any = await api.createPaymentSession(String(bookingId)).catch(() => ({}));
             if (!payJson?.ok) {
@@ -128,6 +136,12 @@ export default function ConfirmPage() {
         const bookingId = createRes?.data?._id || createRes?.data?.id || createRes?.data;
         if (!bookingId) {
           alert('Booking created but server did not return id. Response:\n' + JSON.stringify(createRes, null, 2));
+          return;
+        }
+
+        if (paymentMethod === "cod") {
+          try { sessionStorage.removeItem('bookingDraft'); } catch {}
+          router.push('/bookings?payment=cod');
           return;
         }
 
@@ -164,6 +178,7 @@ export default function ConfirmPage() {
       alert('Payment failed: ' + (e?.message || e));
     } finally {
       setProcessing(false);
+      setPaymentChoice(null);
     }
   };
 
@@ -218,9 +233,9 @@ export default function ConfirmPage() {
                 <div key={it.id} className="flex items-center justify-between bg-[#f7f6ef] rounded p-3">
                   <div>
                     <div className="font-medium">{displayName}</div>
-                    <div className="text-xs text-neutral-500">Qty: {it.qty} • Price: ₹{it.price}</div>
+                    <div className="text-xs text-neutral-500">Qty: {it.qty} • Price: NPR {it.price}</div>
                   </div>
-                  <div className="font-semibold">₹{it.subtotal}</div>
+                  <div className="font-semibold">NPR {it.subtotal}</div>
                 </div>
               );
             })}
@@ -228,12 +243,17 @@ export default function ConfirmPage() {
 
           <div className="mt-6 flex items-center justify-between">
             <div className="text-sm text-neutral-600">Total</div>
-            <div className="text-xl font-bold text-rose-600">₹{total}</div>
+            <div className="text-xl font-bold text-rose-600">NPR {total}</div>
           </div>
 
           <div className="mt-6 flex gap-3">
             <button onClick={cancel} disabled={processing} className="px-4 py-2 bg-white border rounded">Cancel</button>
-            <button onClick={makePayment} disabled={processing} className="px-4 py-2 bg-emerald-600 text-white rounded">{processing ? 'Processing…' : 'Make Payment'}</button>
+            <button onClick={() => makePayment("online")} disabled={processing} className="px-4 py-2 bg-emerald-600 text-white rounded">
+              {processing && paymentChoice === "online" ? 'Processing…' : 'Make Payment'}
+            </button>
+            <button onClick={() => makePayment("cod")} disabled={processing} className="px-4 py-2 border border-orange-300 bg-orange-50 font-semibold text-orange-700 rounded hover:bg-orange-100 disabled:opacity-50">
+              {processing && paymentChoice === "cod" ? 'Booking…' : 'Cash on Delivery'}
+            </button>
           </div>
         </div>
       </main>

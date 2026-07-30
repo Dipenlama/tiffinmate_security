@@ -72,6 +72,14 @@ describe("Bookings integration", () => {
 		expect(res.body.data.total).toBe(10);
 	});
 
+	it("creates a cash-on-delivery booking with COD payment status", async () => {
+		const { token } = await createUserAndToken();
+		const res = await createBooking(token, { paymentMethod: "cod" });
+
+		expect(res.status).toBe(201);
+		expect(res.body.data.paymentStatus).toBe("cod");
+	});
+
 	it("rejects booking creation when items array is missing", async () => {
 		const { token } = await createUserAndToken();
 

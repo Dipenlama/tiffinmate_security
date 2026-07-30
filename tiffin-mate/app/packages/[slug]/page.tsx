@@ -102,15 +102,15 @@ export default function PackagePage() {
   }, [isFixedPackage, slug, fixedList.map(p => p.id).join('|')]);
 
   const getPrice = (id: string, fallback?: number) => {
-    if (fallback !== undefined) return `₹${Number(fallback || 0).toFixed(2)}`;
-    if (!id) return '₹99';
+    if (fallback !== undefined) return `NPR ${Number(fallback || 0).toFixed(2)}`;
+    if (!id) return 'NPR 99';
     const prefix = id[0];
     switch (prefix) {
-      case 'v': return '₹99';
-      case 'n': return '₹129';
-      case 'm': return '₹149';
-      case 'p': return '₹199';
-      default: return '₹119';
+      case 'v': return 'NPR 99';
+      case 'n': return 'NPR 129';
+      case 'm': return 'NPR 149';
+      case 'p': return 'NPR 199';
+      default: return 'NPR 119';
     }
   };
 
@@ -145,7 +145,7 @@ export default function PackagePage() {
       const allItems = pkg.dayOrder.flatMap((d: string) => ((pkg.days as any)[d] || []).map((it: any) => ({ ...it, day: d })));
       const bookingItems = allItems.map((it: any) => {
         const apiPrice = apiItemsMap[it.id]?.price;
-        const priceStr = apiPrice !== undefined ? String(apiPrice) : getPrice(it.id).replace('₹', '') || '0';
+        const priceStr = apiPrice !== undefined ? String(apiPrice) : getPrice(it.id).replace('NPR ', '') || '0';
         const price = Number(priceStr) || 0;
         return { id: it.id, name: `${it.name} (${it.day})`, qty: 1, price, subtotal: price };
       });
@@ -195,7 +195,7 @@ export default function PackagePage() {
       const meta = pkgItems.find((x: any) => x.id === id) || { name: id };
       const qty = quantities[id] || 1;
       const apiPrice = apiItemsMap[id]?.price;
-      const priceStr = apiPrice !== undefined ? String(apiPrice) : getPrice(id).replace('₹', '') || '0';
+      const priceStr = apiPrice !== undefined ? String(apiPrice) : getPrice(id).replace('NPR ', '') || '0';
       const price = Number(priceStr) || 0;
       return { id, name: meta.name || id, qty, price, subtotal: qty * price };
     });

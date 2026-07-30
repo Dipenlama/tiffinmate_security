@@ -38,7 +38,7 @@ export class BookingService {
 			total: parsed.data.total ?? total,
 			address,
 			status: 'pending',
-			paymentStatus: 'pending',
+			paymentStatus: parsed.data.paymentMethod === 'cod' ? 'cod' : 'pending',
 			meta: { address, notes },
 		};
 		return bookingRepository.createBooking(bookingData as any);

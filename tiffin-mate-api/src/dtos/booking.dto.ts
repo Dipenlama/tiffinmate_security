@@ -34,6 +34,7 @@ export const CreateBookingDto = z.object({
   }, z.enum(['once', 'daily', 'weekly'])),
   package: z.string().optional(),
   packageName: z.string().optional(),
+  paymentMethod: z.enum(['online', 'cod']).default('online'),
   address: z.preprocess((val) => {
     if (val === null || val === undefined) return undefined;
     if (typeof val !== 'string') return val;

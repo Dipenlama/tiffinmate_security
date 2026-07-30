@@ -168,7 +168,7 @@ export default function MenuPage() {
                         <p className="text-sm text-neutral-600 line-clamp-2">{it.description || 'Freshly prepared meal crafted by our chefs.'}</p>
                       </div>
                       <div className="text-right ml-2 flex flex-col items-end">
-                        <div className="text-xl font-bold text-rose-600">₹{(Number(it.price||0)).toFixed(2)}</div>
+                        <div className="text-xl font-bold text-rose-600">NPR {(Number(it.price||0)).toFixed(2)}</div>
                         <div className={`text-[11px] font-semibold mt-1 px-2 py-1 rounded-full border ${it.available === false ? 'text-red-600 bg-red-50 border-red-100' : 'text-emerald-600 bg-emerald-50 border-emerald-100'}`}>
                           {it.available === false ? 'Unavailable' : 'In stock'}
                         </div>

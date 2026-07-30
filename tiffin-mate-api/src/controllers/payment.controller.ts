@@ -13,6 +13,53 @@ if (stripeSecret) {
 }
 
 class PaymentController {
+  async confirmCheckoutSession(req: Request, res: Response) {
+    try {
+      if (!stripe) {
+        return res.status(400).json({ success: false, error: { message: 'Online payment is not configured' } });
+      }
+
+      const { bookingId, sessionId } = req.body || {};
+      if (!bookingId) {
+        return res.status(400).json({ success: false, error: { message: 'bookingId is required' } });
+      }
+
+      const booking = await bookingRepository.findById(String(bookingId));
+      if (!booking) return res.status(404).json({ success: false, error: { message: 'Booking not found' } });
+
+      const user = req.user as any;
+      const isOwner = booking.userId && String(booking.userId) === String(user?._id || user?.id);
+      const isAdmin = user?.role === 'admin';
+      if (!isOwner && !isAdmin) return res.status(403).json({ success: false, error: { message: 'Forbidden' } });
+
+      const payments = await paymentRepository.findByBooking(String(bookingId));
+      const recordedPayment = sessionId
+        ? payments.find((entry: any) => String(entry.providerSessionId) === String(sessionId))
+        : payments.find((entry: any) => Boolean(entry.providerSessionId));
+      const providerSessionId = sessionId || recordedPayment?.providerSessionId;
+      if (!providerSessionId) {
+        return res.status(404).json({ success: false, error: { message: 'Payment session not found' } });
+      }
+
+      const session = await stripe.checkout.sessions.retrieve(String(providerSessionId));
+      if (String(session.metadata?.bookingId || '') !== String(bookingId)) {
+        return res.status(400).json({ success: false, error: { message: 'Payment does not match booking' } });
+      }
+      if (session.payment_status !== 'paid') {
+        return res.status(409).json({ success: false, error: { message: 'Payment has not completed' } });
+      }
+
+      const payment = payments.find((entry: any) => String(entry.providerSessionId) === String(providerSessionId)) || payments[0];
+      if (payment?._id) {
+        await paymentRepository.update(String(payment._id), { status: 'succeeded', providerSessionId: String(providerSessionId) });
+      }
+      const updated = await bookingService.markPaymentPaid(String(bookingId));
+      return res.status(200).json({ success: true, data: updated });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: { message: err.message || 'Failed to verify payment' } });
+    }
+  }
+
   async createCheckoutSession(req: Request, res: Response) {
     try {
       const { bookingId } = req.body;
@@ -35,7 +82,7 @@ class PaymentController {
         userId: booking.userId || null,
         bookingId: booking._id,
         amount: Number(booking.total) || 0,
-        currency: 'INR',
+        currency: 'NPR',
         status: 'created',
         provider: stripe ? 'stripe' : 'mock',
       });
@@ -56,7 +103,7 @@ class PaymentController {
 
       const line_items = (booking.items || []).map((it: any) => ({
         price_data: {
-          currency: 'inr',
+          currency: 'npr',
           product_data: { name: it.name },
           unit_amount: Math.round(Number(it.price) * 100),
         },
@@ -76,6 +123,7 @@ class PaymentController {
       if (payment && payment._id) {
         await paymentRepository.update(String(payment._id), { providerSessionId: session.id, status: 'processing' });
       }
+      await bookingService.markPaymentProcessing(bookingId);
 
       return res.json({ success: true, data: { url: session.url, id: session.id, publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' } });
     } catch (err: any) {

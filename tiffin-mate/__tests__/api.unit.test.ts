@@ -316,3 +316,31 @@ describe('cancelBooking helper', () => {
     expect(result.data.status).toBe('cancelled');
   });
 });
+
+describe('confirmPaymentSession helper', () => {
+  afterEach(() => {
+    jest.resetModules();
+  });
+
+  test('verifies the returned Stripe session with the booking id', async () => {
+    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    globalAny.fetch = jest.fn(async (url: string, init?: RequestInit) => {
+      calls.push({ url, init });
+      if (url.endsWith('/auth/csrf-token')) {
+        return new Response(JSON.stringify({ csrfToken: 'test-csrf-token' }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+      }
+      return new Response(JSON.stringify({ success: true, data: { _id: 'booking-1', paymentStatus: 'paid' } }), { status: 200, headers: { 'content-type': 'application/json' } }) as any;
+    });
+
+    const { API_BASE, confirmPaymentSession } = await import('../lib/api');
+    const result = await confirmPaymentSession('booking-1', 'cs_test_1');
+
+    expect(calls[1].url).toBe(`${API_BASE}/payments/confirm`);
+    expect(calls[1].init).toEqual(expect.objectContaining({
+      method: 'POST',
+      credentials: 'include',
+      body: JSON.stringify({ bookingId: 'booking-1', sessionId: 'cs_test_1' }),
+    }));
+    expect(result.data.paymentStatus).toBe('paid');
+  });
+});

@@ -20,7 +20,7 @@ const PaymentSchema = new Schema(
 		userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
 		bookingId: { type: Schema.Types.ObjectId, ref: 'Booking', required: false },
 		amount: { type: Number, required: true, min: 0 },
-		currency: { type: String, required: true, default: 'INR' },
+		currency: { type: String, required: true, default: 'NPR' },
 		status: { type: String, enum: ['created', 'processing', 'succeeded', 'failed', 'cancelled'], default: 'created' },
 		provider: { type: String, required: true },
 		providerSessionId: { type: String, required: false },

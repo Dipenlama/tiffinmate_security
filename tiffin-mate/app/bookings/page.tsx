@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { API_BASE, cancelBooking } from "../../lib/api";
+import { API_BASE, cancelBooking, confirmPaymentSession } from "../../lib/api";
 import { hasSessionMarker } from "../../lib/session-markers";
 
 type Booking = {
@@ -15,6 +15,7 @@ type Booking = {
   items?: Array<{ id?: string; name?: string; qty?: number; price?: number; subtotal?: number }>;
   total?: number;
   status?: string;
+  paymentStatus?: string;
   createdAt?: string;
   updatedAt?: string;
   meta?: { address?: string };
@@ -65,6 +66,9 @@ function BookingsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paymentSucceeded = searchParams.get("payment") === "success";
+  const codBooked = searchParams.get("payment") === "cod";
+  const returnedBookingId = searchParams.get("bookingId");
+  const returnedSessionId = searchParams.get("session_id");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [data, setData] = useState<PageData | null>(null);
@@ -73,6 +77,8 @@ function BookingsPageInner() {
   const [bookingView, setBookingView] = useState<BookingView>("active");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [paymentVerified, setPaymentVerified] = useState(paymentSucceeded && !returnedSessionId);
+  const [paymentVerificationError, setPaymentVerificationError] = useState<string | null>(null);
 
   const currentUser = useMemo(() => getUser(), []);
   const userIdParam = searchParams.get("userId");
@@ -133,11 +139,68 @@ function BookingsPageInner() {
   }, [page, limit, userId, router, forbidden]);
 
   useEffect(() => {
-    if (!paymentSucceeded) return;
+    if (!paymentSucceeded && !codBooked) return;
     try {
       sessionStorage.removeItem("bookingDraft");
     } catch {}
-  }, [paymentSucceeded]);
+  }, [paymentSucceeded, codBooked]);
+
+  useEffect(() => {
+    if (!paymentSucceeded) return;
+    if (!returnedBookingId || !returnedSessionId) {
+      // Mock payments are marked paid before redirecting and have no Stripe session.
+      return;
+    }
+
+    let active = true;
+    confirmPaymentSession(returnedBookingId, returnedSessionId)
+      .then((result) => {
+        if (!active) return;
+        if (!result.ok) {
+          const message = result.data?.error?.message || result.data?.message || "Unable to verify payment";
+          setPaymentVerificationError(message);
+          return;
+        }
+        setPaymentVerified(true);
+        setData((current) => current ? {
+          ...current,
+          items: current.items.map((booking) => booking._id === returnedBookingId ? { ...booking, paymentStatus: "paid" } : booking),
+        } : current);
+      })
+      .catch(() => {
+        if (active) setPaymentVerificationError("Unable to verify payment");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [paymentSucceeded, returnedBookingId, returnedSessionId]);
+
+  useEffect(() => {
+    const processingBookings = (data?.items || []).filter((booking) => booking.paymentStatus === "processing");
+    if (processingBookings.length === 0) return;
+
+    let active = true;
+    Promise.all(processingBookings.map(async (booking) => {
+      const result = await confirmPaymentSession(booking._id);
+      return result.ok ? booking._id : null;
+    })).then((confirmedIds) => {
+      if (!active) return;
+      const paidIds = new Set(confirmedIds.filter((id): id is string => Boolean(id)));
+      if (paidIds.size === 0) return;
+      setData((current) => current ? {
+        ...current,
+        items: current.items.map((booking) => paidIds.has(booking._id) ? { ...booking, paymentStatus: "paid" } : booking),
+      } : current);
+    }).catch(() => {
+      // Leave unverified bookings as processing; never display paid without
+      // confirmation from Stripe.
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [data]);
 
   const onRetry = () => {
     setError(null);
@@ -191,9 +254,27 @@ function BookingsPageInner() {
           <div className="text-sm text-neutral-500">User: {userId || 'unknown'}</div>
         </header>
 
-        {paymentSucceeded && (
+        {paymentSucceeded && paymentVerified && (
           <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status">
             Payment completed. Your booking has been confirmed.
+          </div>
+        )}
+
+        {paymentSucceeded && !paymentVerified && !paymentVerificationError && (
+          <div className="mb-6 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium text-neutral-700" role="status">
+            Verifying payment...
+          </div>
+        )}
+
+        {paymentVerificationError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700" role="alert">
+            {paymentVerificationError}
+          </div>
+        )}
+
+        {codBooked && (
+          <div className="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-800" role="status">
+            Booking confirmed with Cash on Delivery.
           </div>
         )}
 
@@ -255,6 +336,7 @@ function BookingsPageInner() {
               <div className="grid gap-4 md:grid-cols-2">
                 {visibleBookings.map((booking) => {
                   const status = (booking.status || "pending").toLowerCase();
+                  const paymentStatus = (booking.paymentStatus || "pending").toLowerCase();
                   const canCancel = ["pending", "accepted", "dispatched"].includes(status);
                   const statusStyle = status === "accepted"
                     ? "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-200"
@@ -278,13 +360,52 @@ function BookingsPageInner() {
                       <div className="mt-4 border-t border-neutral-100 pt-4 text-sm">
                         <div className="flex justify-between gap-4">
                           <span className="text-neutral-500">Total</span>
-                          <span className="font-semibold text-neutral-900">INR {Number(booking.total || 0).toFixed(2)}</span>
+                          <span className="font-semibold text-neutral-900">NPR {Number(booking.total || 0).toFixed(2)}</span>
                         </div>
                         <div className="mt-2 flex justify-between gap-4">
                           <span className="text-neutral-500">Booked on</span>
                           <span className="text-right text-neutral-700">{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : "Not available"}</span>
                         </div>
+                        <div className="mt-2 flex items-center justify-between gap-4">
+                          <span className="text-neutral-500">Payment</span>
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase ${
+                            paymentStatus === "paid"
+                              ? "bg-emerald-100 text-emerald-800"
+                              : paymentStatus === "cod"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-neutral-100 text-neutral-600"
+                          }`}>
+                            {paymentStatus === "cod" ? "COD" : paymentStatus}
+                          </span>
+                        </div>
                         <p className="mt-3 text-neutral-600">{booking.address || booking.meta?.address || "Delivery address not available"}</p>
+                        {booking.items?.length ? (
+                          <div className="mt-4 rounded-lg border border-neutral-100 bg-[#faf9f4]">
+                            <div className="border-b border-neutral-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                              Items
+                            </div>
+                            <ul className="divide-y divide-neutral-100">
+                              {booking.items.map((item, index) => {
+                                const quantity = Number(item.qty || 1);
+                                const unitPrice = Number(item.price || 0);
+                                const subtotal = Number(item.subtotal ?? quantity * unitPrice);
+                                return (
+                                  <li key={`${item.id || item.name || "item"}-${index}`} className="flex items-center justify-between gap-4 px-3 py-2.5">
+                                    <div className="min-w-0">
+                                      <p className="truncate font-medium text-neutral-800">{item.name || "Menu item"}</p>
+                                      <p className="mt-0.5 text-xs text-neutral-500">
+                                        Qty {quantity} at NPR {unitPrice.toFixed(2)}
+                                      </p>
+                                    </div>
+                                    <span className="shrink-0 font-semibold text-neutral-800">NPR {subtotal.toFixed(2)}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        ) : (
+                          <p className="mt-4 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">Item details are not available.</p>
+                        )}
                         {canCancel && (
                           <div className="mt-4 border-t border-neutral-100 pt-4 text-right">
                             <button

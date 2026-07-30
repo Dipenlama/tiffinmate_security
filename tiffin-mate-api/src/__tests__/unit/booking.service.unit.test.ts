@@ -91,6 +91,12 @@ describe("BookingService unit", () => {
     expect(result._id).toBe("b2");
   });
 
+  it("creates cash-on-delivery bookings with COD payment status", async () => {
+    mockRepo.createBooking.mockResolvedValue({ _id: "b-cod", paymentStatus: "cod" });
+    await service.createBooking("user-id", buildPayload({ paymentMethod: "cod" }));
+    expect(mockRepo.createBooking.mock.calls[0][0].paymentStatus).toBe("cod");
+  });
+
   it("getById throws 404 when missing", async () => {
     mockRepo.findById.mockResolvedValue(null);
     await expect(service.getById("missing" as any)).rejects.toMatchObject({ statusCode: 404 });
