@@ -26,10 +26,13 @@ describe("loginLimiter", () => {
 		app.post("/login", loginLimiter, (_req, res) => res.json({ ok: true }));
 
 		let lastStatus = 0;
-		for (let i = 0; i < 11; i++) {
+		let lastBody: any;
+		for (let i = 0; i < 9; i++) {
 			const res = await request(app).post("/login");
 			lastStatus = res.status;
+			lastBody = res.body;
 		}
 		expect(lastStatus).toBe(429);
+		expect(lastBody.message).toBe("Too many login attempts. Try again after 15 minutes.");
 	});
 });

@@ -23,8 +23,9 @@ const hashResetToken = sha256Hex;
 const ACCESS_TOKEN_TTL = '15d';
 const REFRESH_TOKEN_TTL_MS = 15 * 24 * 60 * 60 * 1000;
 const MFA_PREAUTH_TOKEN_TTL = '2m';
-const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const MAX_FAILED_LOGIN_ATTEMPTS = 8;
 const ACCOUNT_LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const ACCOUNT_LOCK_MESSAGE = "Too many login attempts. Try again after 15 minutes.";
 
 function signAccessToken(user: Pick<IUser, '_id' | 'email' | 'username' | 'role'>): string {
     const payload = { id: user._id, email: user.email, username: user.username, role: user.role };
@@ -99,7 +100,7 @@ export class AuthService{
         // different address.
         if(user.lockUntil && user.lockUntil > new Date()){
             logAuditEvent({ action: 'auth.login.locked', outcome: 'failure', actorId: user._id.toString(), actorEmail: user.email, ip });
-            throw new HttpError(423, "Account temporarily locked due to too many failed login attempts. Try again later.");
+            throw new HttpError(423, ACCOUNT_LOCK_MESSAGE);
         }
 
         const validPassword = await bcryptjs.compare(data.password, user.password);
@@ -110,7 +111,7 @@ export class AuthService{
                     $set: { failedLoginAttempts: 0, lockUntil: new Date(Date.now() + ACCOUNT_LOCK_DURATION_MS) },
                 } as any);
                 logAuditEvent({ action: 'auth.account.locked', outcome: 'failure', actorId: user._id.toString(), actorEmail: user.email, ip });
-                throw new HttpError(423, "Account temporarily locked due to too many failed login attempts. Try again later.");
+                throw new HttpError(423, ACCOUNT_LOCK_MESSAGE);
             }
             await userRepository.updateUserById(user._id.toString(), { $set: { failedLoginAttempts: attempts } } as any);
             logAuditEvent({ action: 'auth.login.failure', outcome: 'failure', actorId: user._id.toString(), actorEmail: user.email, ip, metadata: { attempts } });

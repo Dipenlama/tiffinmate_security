@@ -154,12 +154,12 @@ describe("AuthService unit", () => {
       email: "user2@example.com",
       username: "user2",
       password: hashed,
-      failedLoginAttempts: 4, // one more failure reaches the 5-attempt threshold
+      failedLoginAttempts: 7, // one more failure reaches the 8-attempt threshold
     });
 
     await expect(
       service.loginUser({ email: "user2@example.com", password: "wrong" })
-    ).rejects.toEqual(new HttpError(423, "Account temporarily locked due to too many failed login attempts. Try again later."));
+    ).rejects.toEqual(new HttpError(423, "Too many login attempts. Try again after 15 minutes."));
 
     const [, update] = mockRepo.updateUserById.mock.calls[0];
     expect(update.$set.lockUntil).toBeInstanceOf(Date);
@@ -178,7 +178,7 @@ describe("AuthService unit", () => {
 
     await expect(
       service.loginUser({ email: "user3@example.com", password: "correct" })
-    ).rejects.toEqual(new HttpError(423, "Account temporarily locked due to too many failed login attempts. Try again later."));
+    ).rejects.toEqual(new HttpError(423, "Too many login attempts. Try again after 15 minutes."));
   });
 
   it("forgotPassword returns success and does not update for unknown email", async () => {

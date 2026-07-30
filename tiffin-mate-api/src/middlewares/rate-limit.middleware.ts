@@ -20,11 +20,11 @@ const skipInTest = () => process.env.NODE_ENV === 'test';
 // for credential stuffing / brute force.
 export const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 10,
+    limit: 8,
     standardHeaders: true,
     legacyHeaders: false,
     skip: skipInTest,
-    message: { success: false, message: "Too many login attempts. Please try again later." },
+    message: { success: false, message: "Too many login attempts. Try again after 15 minutes." },
 });
 
 // Looser limit for registration - still bounded to slow down mass fake-account creation.
