@@ -8,6 +8,7 @@ import { sha256Hex, randomToken } from "../utils/hash";
 import { generateMfaSecret, buildMfaQrCode, verifyMfaCode, encryptMfaSecret, decryptMfaSecret, needsMfaSecretMigration } from "./mfa.service";
 import { logAuditEvent } from "./audit-log.service";
 import jwt from "jsonwebtoken";
+
 import { IUser } from "../models/user.model";
 import { isEmailConfigured, sendPasswordResetEmail } from "./mail.service";
 
